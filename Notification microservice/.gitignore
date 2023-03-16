@@ -1,0 +1,7 @@
+# Ignore node_modules directory
+node_modules/
+notification copy.js
+rabbitmq_setup.js
+
+# Ignore log files
+*.log
