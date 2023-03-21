@@ -1,6 +1,9 @@
 package RoomMicroservice.roomMicroservice;
 
+import com.sun.net.httpserver.Authenticator;
 import jakarta.validation.Valid;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -18,39 +21,66 @@ public class RoomController {
 //        this.roomRepository = roomRepository;
 //    }
 
-    // getting all the books
     // Save operation
     @PostMapping("/rooms")
-    public Room saveRoom(
+    public JSONObject saveRoom(
             @Valid @RequestBody Room room)
     {
-        return roomService.saveRoom(room);
+        // checking that all the relevant fields are there
+        if (room.getRoomName() == null || room.getRoomType() == null || room.getLocation() == null || room.getCapacity() == null || room.getCost() == null || room.getMaxCoBooker() == null){
+            JSONObject failureJsonObject = new JSONObject();
+            failureJsonObject.put("code", 400);
+            failureJsonObject.put("message", "Please provide all the required fields: roomName, roomType, location, capacity, cost or MaxCoBooker.");
+            return failureJsonObject;
+        }
+
+        JSONObject successJsonObject = new JSONObject();
+        successJsonObject.put("code", 200);
+        successJsonObject.put("data", roomService.saveRoom(room));
+        successJsonObject.put("message", "Successfully updated room details");
+        return successJsonObject;
     }
 
     // Read operation
     @GetMapping("/rooms")
-    public List<Room> fetchRoomList()
+    public JSONObject fetchRoomList()
     {
-        return roomService.fetchRoomList();
+        JSONObject successJsonObject = new JSONObject();
+        successJsonObject.put("code", 200);
+        successJsonObject.put("data", roomService.fetchRoomList());
+        successJsonObject.put("message", "Successfully retrieved the rooms");
+        return successJsonObject;
     }
 
     // Update operation
     @PutMapping("/rooms/{id}")
-    public Room
+    public JSONObject
     updateRoom(@RequestBody Room room,
                      @PathVariable("id") Integer roomId)
     {
+        // checking for relevant fields
+        if (room.getRoomName() == null && room.getRoomType() == null && room.getLocation() == null && room.getCapacity() == null && room.getCost() == null && room.getMaxCoBooker() == null){
+            JSONObject failureJsonObject = new JSONObject();
+            failureJsonObject.put("code", 400);
+            failureJsonObject.put("message", "Please input at least one field to update: roomName, roomType, location, capacity, cost or MaxCoBooker.");
+            return failureJsonObject;
+        }
 
-        return roomService.updateRoom(
-                room, roomId);
+        JSONObject successJsonObject = new JSONObject();
+        successJsonObject.put("code", 200);
+        successJsonObject.put("data", roomService.updateRoom(room, roomId));
+        successJsonObject.put("message", "Successfully updated room details");
+        return successJsonObject;
     }
 
     // Delete operation
     @DeleteMapping("/rooms/{id}")
-    public String deleteRoomById(@PathVariable("id") Integer roomId)
+    public JSONObject deleteRoomById(@PathVariable("id") Integer roomId)
     {
-        roomService.deleteRoomById(
-                roomId);
-        return "Deleted Successfully";
+        roomService.deleteRoomById(roomId);
+        JSONObject successJsonObject = new JSONObject();
+        successJsonObject.put("code", 200);
+        successJsonObject.put("message", "Deleted Successfully");
+        return successJsonObject;
     }
 }
