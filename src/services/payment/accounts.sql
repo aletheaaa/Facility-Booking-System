@@ -32,7 +32,7 @@ USE `accounts`;
 
 DROP TABLE IF EXISTS `accounts`;
 CREATE TABLE IF NOT EXISTS `accounts` (
-  `accountID` int NOT NULL,
+  `accountID` int NOT NULL AUTO_INCREMENT,
   `email` varchar(254) NOT NULL,
   `balance` double(6,2) NOT NULL,
   PRIMARY KEY (`accountID`)
@@ -42,12 +42,12 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 -- Dumping data for table `accounts`
 --
 
-INSERT INTO accounts (accountID, email, balance) VALUES  
-  (1001, 'john.doe@example.com', 500.75),
-  (1002, 'jane.smith@example.com', 120.00),
-  (1003, 'bob.johnson@example.com', 350.50),
-  (1004, 'susan.taylor@example.com', 134.25),
-  (1005, 'jim.wilson@example.com', 50.00);
+INSERT INTO accounts (email, balance) VALUES  
+  ('john.doe@example.com', 500.00),
+  ('jane.smith@example.com', 460.00),
+  ('bob.johnson@example.com', 440.00),
+  ('susan.taylor@example.com', 100.00),
+  ('jim.wilson@example.com', 400.00);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
