@@ -10,7 +10,7 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
 START TRANSACTION;
-SET time_zone = "+00:00";
+SET time_zone = "+08:00";
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -18,31 +18,24 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
---
--- Database: `order`
---
 CREATE DATABASE IF NOT EXISTS `bookingLogs` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `bookingLogs`;
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `order`
---
-
 DROP TABLE IF EXISTS `bookingLogs`;
 CREATE TABLE IF NOT EXISTS `bookingLogs` (
   `bookingID` int(11) NOT NULL AUTO_INCREMENT,
   `accountID` int(32) NOT NULL,
-  `startTime` timestamp NOT NULL,
-  `endTime` timestamp NOT NULL,
+  `startTime` TIMESTAMP NOT NULL,
+  `endTime` TIMESTAMP NOT NULL,
   `price` double(6,2) NOT NULL,
   `roomID` int(32) NOT NULL,
   PRIMARY KEY (`bookingID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 --
--- Dumping data for table `order`
+-- Dumping data for table `bookinglogs`
 --
 
 INSERT INTO `bookingLogs` (`bookingID`, `accountID`, `startTime`, `endTime`, `price`, `roomID`) VALUES

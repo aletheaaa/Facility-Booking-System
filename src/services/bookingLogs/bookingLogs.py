@@ -2,36 +2,62 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
+from datetime import datetime, date, timedelta
+from sqlalchemy import func
+from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-# app.config["SQLALCHEMY_DATABASE_URI"] = "mysqlysqlconnector://root@localhost:3306/book"
+# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
 class BookingLog(db.Model):
-    __tablename__ = 'bookinglog'
+    __tablename__ = 'bookinglogs'
     bookingID = db.Column(db.Integer, primary_key=True)
     accountID = db.Column(db.Integer, nullable=False)
-    coBookerID = db.Column(db.Integer, nullable=True)
-    bkgStartTime = db.Column(db.DateTime, nullable=False)
-    bkgEndTime = db.Column(db.DateTime, nullable=False)
+    startTime = db.Column(db.DateTime, nullable=False)
+    endTime = db.Column(db.DateTime, nullable=False)
     price = db.Column(db.Float(precision=2), nullable=False)
-    roomId = db.Column(db.Integer, nullable=False)
+    roomID = db.Column(db.Integer, nullable=False)
 
-    def __init__(self, bookingID, accountID, coBookerID, bkgStartTime, bkgEndTime, price, roomId):
-        self.bookingID = bookingID
-        self.accountID = accountID
-        self.coBookerID = coBookerID
-        self.bkgStartTime = bkgStartTime
-        self.bkgEndTime = bkgEndTime
-        self.price = price
-        self.roomId = roomId
-        
+    # relationship: orders
+    coBookers = relationship(
+        'CoBooker',
+        cascade='save-update, merge, delete'
+    )
+
     def json(self):
-        return {"bookingID": self.bookingID, "accountID": self.accountID, "coBookerID": self.coBookerID, "bkgStartTime": self.bkgStartTime, "bkgEndTime": self.bkgEndTime, "price": self.price, "roomId": self.roomId}
+        dto = {
+            "bookingID": self.bookingID, 
+            "accountID": self.accountID, 
+            "startTime": self.startTime, 
+            "endTime": self.endTime, 
+            "price": self.price, 
+            "roomId": self.roomID
+        }
+
+        dto['coBooker'] = []
+        for oi in self.coBooker:
+            dto['coBooker'].append(oi.json())
+
+        return dto
    
+class CoBooker(db.Model):
+    __tablename__ = 'coBooker'
+    accountID = db.Column(db.Integer, primary_key=True)
+    bookingID = db.Column(db.ForeignKey(
+        'bookinglogs.bookingID', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True, primary_key=True)
+    paidStatus = db.Column(db.String(36), nullable=False)
+
+    bookingLog = db.relationship(
+        'BookingLog', primaryjoin='CoBooker.bookingID == BookingLog.bookingID', backref='coBooker')
+
+    def json(self):
+        return {'accountID': self.accountID, 'bookingID': self.bookingID, 'paidStatus': self.paidStatus}
+
+# get all bookings
 @app.route("/bookinglog")
 def get_all():
     bookingloglist = BookingLog.query.all()
@@ -51,9 +77,38 @@ def get_all():
         }
     ), 404
 
-@app.route("/bookinglog/<integer:bookingID>")
-def find_booking(bookingID):
-    bookinglog = BookingLog.query.filter_by(bookingID=bookingID).first()
+
+# get all booking by accountID
+@app.route("/bookinglog/<int:accountID>")
+def find_by_accountID(accountID):
+    bookingloglist = BookingLog.query.filter_by(accountID=accountID).all()
+    if len(bookingloglist):
+        return jsonify(
+            {
+                "code": 200,
+                "data": {
+                    "bookinglogs": [bookinglog.json() for bookinglog in bookingloglist]
+                }
+            }
+        )   
+    return jsonify(
+        {
+            "code": 404,
+            "message": "There are no bookings at this time."
+        }
+    ), 404
+
+
+# get all the bookings for the selected fields to get the available rooms
+@app.route("/bookinglog/getTaken/<int:roomID>", methods=['GET'])
+def find_booking(roomID):
+    if (roomID == None):
+        return jsonify({
+            "code": 400,
+            "message": "Provide a roomID."
+        })
+
+    bookinglog = BookingLog.query.filter_by(roomID=roomID).first()
     if bookinglog:
         return jsonify(
             {
@@ -64,26 +119,37 @@ def find_booking(bookingID):
     return jsonify(
         {
             "code": 404,
-            "message": "Booking log is not found."
+            "message": "No booking log found."
         }
     ), 404
 
-@app.route("/bookinglog/<integer:bookingID>", methods=['POST'])
-def create_booking(bookingID):
-    if (BookingLog.query.filter_by(bookingID=bookingID).first()):
-        return jsonify(
-            {
-                "code": 400,
-                "data": {
-                    "booking": bookingID
-                },
-                "message": "Booking already exists."
-            }
-        ), 400
-
-
+# create a new booking
+@app.route("/bookinglog/", methods=['POST'])
+def create_booking():
+    # checking if all the fields are filled by the user
     data = request.get_json()
-    bookinglog = BookingLog(bookingID, **data)
+    if ((data["accountID"] == None) or (data["startTime"] == None) or (data["endTime"] == None) or (data["price"] == None) or (data["roomID"] == None)):
+        return jsonify({
+            "code": 400,
+            "message": "Provide all the fields."
+        })
+    
+    dataWithoutCoBooker = data.copy()
+    dataWithoutCoBooker.pop("coBooker", None)
+
+    # assume that data is valid since users can only click on valid time slots
+    bookinglog = BookingLog(**dataWithoutCoBooker)
+
+    # checking if coBooker field was filled
+    try:
+        data["coBooker"]
+        print('i am here')
+        for i in range(len(data["coBooker"])):
+            bookinglog.coBooker.append(CoBooker(
+                accountID=data["coBooker"][i], paidStatus="False"))
+    except:
+        None
+
     try:
         db.session.add(bookinglog)
         db.session.commit()
@@ -92,19 +158,52 @@ def create_booking(bookingID):
             {
                 "code": 500,
                 "data": {
-                    "booking": bookingID
+                    "booking": bookinglog
                 },
                 "message": "An error occurred creating the booking."
             }
         ), 500
-
-
     return jsonify(
         {
             "code": 201,
             "data": bookinglog.json()
         }
     ), 201
+
+# delete booking by roomID & timeslot
+@app.route("/bookinglog", methods=['DELETE'])
+def delete_booking():
+    data = request.get_json()
+    
+    # checking if the relevant fields are filled
+    if ((data["startTime"] == None) or (data["endTime"] == None) or (data["roomID"] == None)):
+        return jsonify({
+            "code": 400,
+            "message": "Provide all the fields: startTime, endTime, roomID."
+        })
+    
+    # filter by roomID & timeslot
+    bookinglog = BookingLog.query.filter_by(roomID=data["roomID"], startTime=data["startTime"], endTime=data["endTime"]).first()
+    if bookinglog:
+
+        # !!!!!!!!!!!!! find out if coBooker table is empty
+        
+        db.session.delete(bookinglog)
+        db.session.commit()
+        return jsonify(
+            {
+                "code": 200,
+                "data": {
+                    "booking": bookinglog.json()
+                }
+            }
+        )
+    return jsonify(
+        {
+            "code": 404,
+            "message": "Booking not found."
+        }
+    ), 404
 
 
 if __name__ == '__main__':
