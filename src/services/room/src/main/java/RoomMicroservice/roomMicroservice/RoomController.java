@@ -1,13 +1,16 @@
 package RoomMicroservice.roomMicroservice;
 
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.sun.net.httpserver.Authenticator;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Null;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 
@@ -48,6 +51,23 @@ public class RoomController {
         JSONObject successJsonObject = new JSONObject();
         successJsonObject.put("code", 200);
         successJsonObject.put("data", roomService.fetchRoomList());
+        successJsonObject.put("message", "Successfully retrieved the rooms");
+        return successJsonObject;
+    }
+
+    // get the room with the selected fields
+    @GetMapping("/rooms/getSpecificRooms")
+    public JSONObject fetchSpecificRoomList(@RequestBody UserFields body){
+        JSONObject successJsonObject = new JSONObject();
+        if (body.getLocation() != null && body.getLocation() != null){
+            successJsonObject.put("data", roomService.fetchRoomByRoomTypeAndLocation(body.getRoomType(), body.getLocation()));
+        } else if (body.getRoomType() == null) {
+            successJsonObject.put("data", roomService.fetchRoomByLocation(body.getLocation()));
+        } else {
+            successJsonObject.put("data", roomService.fetchRoomByRoomType(body.getRoomType()));
+        }
+
+        successJsonObject.put("code", 200);
         successJsonObject.put("message", "Successfully retrieved the rooms");
         return successJsonObject;
     }

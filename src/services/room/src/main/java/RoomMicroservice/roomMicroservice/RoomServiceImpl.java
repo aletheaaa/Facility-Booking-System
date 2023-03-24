@@ -1,6 +1,8 @@
 package RoomMicroservice.roomMicroservice;
 
+import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +23,20 @@ public class RoomServiceImpl implements RoomService {
         return (List<Room>) roomRepository.findAll();
     }
 
-//    @Override
+    public List<Room> fetchRoomByRoomType(List roomType) {
+        return (List<Room>) roomRepository.findRoomsByRoomType(roomType);
+    };
+
+    public List<Room> fetchRoomByLocation(List location) {
+        return (List<Room>) roomRepository.findRoomsByLocation(location);
+    };
+
+    public List<Room> fetchRoomByRoomTypeAndLocation(List roomType, List location) {
+        return (List<Room>) roomRepository.findRoomsByRoomTypeAndCapacity(roomType, location);
+    };
+
+
+    //    @Override
     public Room updateRoom(Room room, Integer roomId) {
         Room roomDB = roomRepository.findById(roomId).get();
 

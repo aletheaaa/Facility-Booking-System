@@ -108,12 +108,12 @@ def find_booking(roomID):
             "message": "Provide a roomID."
         })
 
-    bookinglog = BookingLog.query.filter_by(roomID=roomID).first()
+    bookinglog = BookingLog.query.filter_by(roomID=roomID).all()
     if bookinglog:
         return jsonify(
             {
                 "code": 200,
-                "data": bookinglog.json()
+                "data": [bookinglog.json() for bookinglog in bookinglog]
             }
         )
     return jsonify(

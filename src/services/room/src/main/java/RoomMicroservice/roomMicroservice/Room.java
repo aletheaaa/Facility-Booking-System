@@ -20,7 +20,6 @@ public class Room {
     private Integer roomId;
     private String roomName;
     private String roomType;
-
     private String location;
     private Integer capacity;
     private Integer cost;
