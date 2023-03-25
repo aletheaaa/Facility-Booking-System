@@ -5,19 +5,20 @@ const queueName = 'notification';
 const exchangeName = 'fbs';
 const routingKey = 'email.notifications'; // the routing key to use when publishing messages
 
-function mailer(details) {
 
-    var cobooker = ``
+function mailer(details) {
+    const link = 'https://fbs.intranet.smu.edu.sg/home'
+    var cobooker_text = ``
 
     if (details.cobooker != null) {
-        cobooker = `You have indicated a cobooker when booking, ${details.cobooker} please click on the following link to accept the booking:
-https://www.google.com`
+        cobooker_text = `You have indicated a cobooker when booking, ${details.cobooker} please click on the following link to accept the booking:
+${link}`
     };
 
     var message = `This is to inform you that your booking on ${details.date} for ${details.room} at ${details.time} has been approved. 
-${cobooker}
+${cobooker_text}
 Click this link for more information:
-${details.link}`
+${link}`
 
     var transporter = nodemailer.createTransport({
         service: 'hotmail',

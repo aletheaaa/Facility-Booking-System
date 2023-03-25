@@ -8,7 +8,6 @@ const message = {
     "time":"1100 - 1200",
     "room":"SOE/SCIS2 Seminar Rm 3-3",
     "cobooker":null,
-    "link":"https://fbs.intranet.smu.edu.sg/home",
     "date":"15/03/23"
 };
 
