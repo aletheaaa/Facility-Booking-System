@@ -100,20 +100,24 @@ def find_by_accountID(accountID):
 
 
 # get all the bookings for the selected fields to get the available rooms
-@app.route("/bookinglog/getTaken/<int:roomID>", methods=['GET'])
-def find_booking(roomID):
-    if (roomID == None):
+@app.route("/bookinglog/getTaken", methods=['GET'])
+def find_booking():
+    data = request.get_json()
+    if (data == None or len(data["roomID"]) == 0):
         return jsonify({
             "code": 400,
             "message": "Provide a roomID."
         })
 
-    bookinglog = BookingLog.query.filter_by(roomID=roomID).all()
-    if bookinglog:
+    final = []
+    for i in data["roomID"]:
+        bookinglog = BookingLog.query.filter_by(roomID=i).all()
+        final.extend(bookinglog)
+    if len(final) != 0:
         return jsonify(
             {
                 "code": 200,
-                "data": [bookinglog.json() for bookinglog in bookinglog]
+                "data": [bookinglog.json() for bookinglog in final]
             }
         )
     return jsonify(
@@ -143,7 +147,6 @@ def create_booking():
     # checking if coBooker field was filled
     try:
         data["coBooker"]
-        print('i am here')
         for i in range(len(data["coBooker"])):
             bookinglog.coBooker.append(CoBooker(
                 accountID=data["coBooker"][i], paidStatus="False"))
