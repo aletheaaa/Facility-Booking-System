@@ -4,22 +4,38 @@ const nodemailer = require('nodemailer')
 const queueName = 'notification';
 const exchangeName = 'fbs';
 const routingKey = 'email.notifications'; // the routing key to use when publishing messages
+var subject_title = 'confirmation';
 
+//bookerID, coBookerID, bookerAddress, coBookerAddress,roomName, cost, bookingID, date, time, type
 
 function mailer(details) {
-    const link = 'https://fbs.intranet.smu.edu.sg/home'
-    var cobooker_text = ``
+    //const link = "fbs.com/?accountID="
 
-    if (details.cobooker != null) {
-        cobooker_text = `You have indicated a cobooker when booking, ${details.cobooker} please click on the following link to accept the booking:
-${link}`
+    //if it is a cancellation
+    if (details.type == "cancel"){
+      subject_title = "cancellation"
+      var message = `This is to confirm the cancellation of your booking on ${details.date} for ${details.roomName} at ${details.time}. 
+Please wait while the credits are being refunded` 
+    }
+
+    //for confirmation
+    else{
+      var cobooker_text = ``
+
+      if (details.coBookerID != null) {
+        cobooker_text = `Additionally, as you have indicated a cobooker when booking, please note credits are only deducted evenly after cobooker accepts the request
+`
     };
 
-    var message = `This is to inform you that your booking on ${details.date} for ${details.room} at ${details.time} has been approved. 
-${cobooker_text}
-Click this link for more information:
-${link}`
+      var message = `This is to inform you that your booking on ${details.date} for ${details.roomName} at ${details.time} has been approved.
 
+${cobooker_text}
+
+Please use this link to see the booking information:
+fbs.com`
+    }
+
+    //nodemailer transporter
     var transporter = nodemailer.createTransport({
         service: 'hotmail',
         auth: {
@@ -28,14 +44,14 @@ ${link}`
         }
       });
     var mailnames = [
-        details.name,
-        details.cobooker
+        details.bookerAddress,
+        details.coBookerAddress
     ]
       
     var mailOptions = {
     from: "ESDFBSproj@outlook.com",
     to: mailnames,
-    subject: `Facility booking for ID:${details.bookingid} confirmed`,
+    subject: `Facility booking for ID:${details.bookingID} ${subject_title}`,
     text: message
     };
     

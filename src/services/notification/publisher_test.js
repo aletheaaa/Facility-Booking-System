@@ -2,12 +2,16 @@ const amqp = require('amqplib');
 
 const exchangeName = 'fbs';
 const routingKey = 'email.notifications';
+//{ bookerID, coBookerID, bookerAddress, coBookerAddress,roomName, cost, bookingID, date, time, type}
 const message = {
-    "name":"joeltan.2021@scis.smu.edu.sg",
-    "bookingid":"57639218",
+    "bookerAddress":"joeltan.2021@scis.smu.edu.sg",
+    "coBookerAddress":"alethea.toh.2021@scis.smu.edu.sg",
+    "bookerID":1,
+    "coBookerID":2,
+    "type":"create",
+    "bookingID":"57639218",
     "time":"1100 - 1200",
-    "room":"SOE/SCIS2 Seminar Rm 3-3",
-    "cobooker":null,
+    "roomName":"SOE/SCIS2 Seminar Rm 3-3",
     "date":"15/03/23"
 };
 
@@ -20,6 +24,7 @@ async function publishMessage() {
     const messageString = JSON.stringify(message);
     channel.publish(exchangeName, routingKey, Buffer.from(messageString));
     console.log(`Message sent to exchange ${exchangeName} with routing key ${routingKey}`);
+    console.log(typeof(messageString)+"//"+messageString)
     await channel.close();
     await connection.close();
   } catch (error) {
