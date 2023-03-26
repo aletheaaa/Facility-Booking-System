@@ -2,13 +2,11 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
-from datetime import datetime, date, timedelta
-from sqlalchemy import func
 from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-# app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs"
+# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -49,13 +47,13 @@ class CoBooker(db.Model):
     accountID = db.Column(db.Integer, primary_key=True)
     bookingID = db.Column(db.ForeignKey(
         'bookinglogs.bookingID', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True, primary_key=True)
-    paidStatus = db.Column(db.String(36), nullable=False)
+    acceptStatus = db.Column(db.String(36), nullable=False)
 
     bookingLog = db.relationship(
         'BookingLog', primaryjoin='CoBooker.bookingID == BookingLog.bookingID', backref='coBooker')
 
     def json(self):
-        return {'accountID': self.accountID, 'bookingID': self.bookingID, 'paidStatus': self.paidStatus}
+        return {'accountID': self.accountID, 'bookingID': self.bookingID, 'acceptStatus': self.acceptStatus}
 
 # get all bookings
 @app.route("/bookinglog")
@@ -77,8 +75,25 @@ def get_all():
         }
     ), 404
 
+# get booking by bookingID
+@app.route("/bookinglog/<int:bookingID>")
+def find_by_bookingID(bookingID):
+    bookinglog = BookingLog.query.filter_by(bookingID=bookingID).first()
+    if bookinglog:
+        return jsonify(
+            {
+                "code": 200,
+                "data": bookinglog.json()
+            }
+        )
+    return jsonify(
+        {
+            "code": 404,
+            "message": "Booking not found."
+        }
+    ), 404
 
-# get all booking by accountID
+# get all booking by accountID as the original booker
 @app.route("/bookinglog/<int:accountID>")
 def find_by_accountID(accountID):
     bookingloglist = BookingLog.query.filter_by(accountID=accountID).all()
@@ -98,6 +113,25 @@ def find_by_accountID(accountID):
         }
     ), 404
 
+# get all booking by accountID as a coBooker
+@app.route("/bookinglog/coBooker/<int:accountID>")
+def find_by_coBooker(accountID):
+    bookingloglist = CoBooker.query.filter_by(accountID=accountID).all()
+    if len(bookingloglist):
+        return jsonify(
+            {
+                "code": 200,
+                "data": {
+                    "bookinglogs": [bookinglog.json() for bookinglog in bookingloglist]
+                }
+            }
+        )
+    return jsonify(
+        {
+            "code": 404,
+            "message": "No booking as a coBooker found."
+        }
+    ), 404
 
 # get all the bookings for the selected fields to get the available rooms
 @app.route("/bookinglog/getTaken", methods=['GET'])
@@ -149,7 +183,7 @@ def create_booking():
         data["coBooker"]
         for i in range(len(data["coBooker"])):
             bookinglog.coBooker.append(CoBooker(
-                accountID=data["coBooker"][i], paidStatus="False"))
+                accountID=data["coBooker"][i], acceptStatus="False"))
     except:
         None
 
@@ -173,6 +207,34 @@ def create_booking():
         }
     ), 201
 
+# update booking by bookingID
+@app.route("/bookinglog/coBookerAccept", methods=['PUT'])
+def update_booking():
+    data = request.get_json()
+    if data["accountID"] == None or data["bookingID"] == None:
+        return jsonify({
+            "code": 400,
+            "message": "Provide all the fields."
+        })
+    coBooker = CoBooker.query.filter_by(accountID=data["accountID"], bookingID=data["bookingID"]).first()
+    print(coBooker)
+    if coBooker:
+        coBooker.acceptStatus = "True"
+        db.session.commit()
+        return jsonify(
+            {
+                "code": 200,
+                "data": coBooker.json()
+            }
+        ), 200
+    return jsonify(
+        {
+            "code": 404,
+            "message": "coBooker not found."
+        }
+    ), 404
+
+
 # delete booking by roomID & timeslot
 @app.route("/bookinglog", methods=['DELETE'])
 def delete_booking():
@@ -188,9 +250,6 @@ def delete_booking():
     # filter by roomID & timeslot
     bookinglog = BookingLog.query.filter_by(roomID=data["roomID"], startTime=data["startTime"], endTime=data["endTime"]).first()
     if bookinglog:
-
-        # !!!!!!!!!!!!! find out if coBooker table is empty
-        
         db.session.delete(bookinglog)
         db.session.commit()
         return jsonify(
@@ -200,7 +259,7 @@ def delete_booking():
                     "booking": bookinglog.json()
                 }
             }
-        )
+        ), 200
     return jsonify(
         {
             "code": 404,
@@ -210,4 +269,4 @@ def delete_booking():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
