@@ -1,0 +1,123 @@
+version: '3.8'
+networks:
+  access-booking-network:
+    driver: bridge
+  update-booking-network:
+    driver: bridge
+  make-bookings-network:
+    driver: bridge
+  my-network:
+
+services:
+  #################################
+  # notif: The Notification microservice
+  #################################
+  # notif:  
+  #   build: 
+  #     context: ./notification
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   restart: always
+  #   networks:
+  #     - access-booking-network
+  #     - make-bookings-network
+  #     - my-network
+  #   depends_on:
+  #     - rabbitmq
+
+  # #################################
+  # # rabbitmq: The RabbitMQ image
+  # #################################
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   hostname: esd-rabbit
+  #   restart: always
+  #   networks:
+  #     - my-network
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  
+  ################################
+  # BookingLogs: The BookingLogs microservice
+  #################################
+  bookinglogs:
+    image: aletheatohh/bookinglogs:1.0
+    build: 
+      context: ./bookingLogs
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/bookinglogs
+    networks:
+      - access-booking-network
+      - update-booking-network
+      - make-bookings-network
+  
+  #################################
+  # Payment: The Payment microservice
+  #################################
+  payment:
+    build: 
+      context: ./payment
+      dockerfile: Dockerfile
+    image: aletheatohh/payment:1.0
+    restart: always
+    networks:
+      - update-booking-network
+      - make-bookings-network
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/accounts
+    ports:
+      - "5002:5002"
+  
+  # #################################
+  # # Room: The Room microservice
+  # #################################
+  # room:
+  #   image: aletheatohh/room:1.0
+  #   restart: always
+  #   environment:
+  #     MYSQL_DB_LINK: jdbc:mysql://mysql-room:3306/roomdb
+  #   depends_on:
+  #     - db
+  #   links:
+  #     - db
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - make-bookings-network
+  #     - access-booking-network
+
+  # #################################
+  # # MySQL: The official image for MySQL
+  # #################################
+  # db:
+  #   container_name: mysql-room
+  #   image: mysql
+  #   restart: always
+  #   environment:
+  #     MYSQL_PASSWORD: ESDT5
+  #     MYSQL_DATABASE: roomdb
+  #     MYSQL_ROOT_PASSWORD: ESDT5
+  #     MYSQL_USER: IS213Room
+  #   expose:
+  #     - "3306"
+
+  #################################
+  # updateBooking: The official image for MySQL
+  #################################
+  updatebooking:
+    image: aletheatohh/updatebooking:1.0
+    restart: always
+    build:
+      context: ./updateBooking
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "5003:5003"
+    networks:
+      - update-booking-network
