@@ -75,6 +75,23 @@ def get_all():
         }
     ), 404
 
+# get booking by bookingID
+@app.route("/bookinglog/<int:bookingID>")
+def find_by_bookingID(bookingID):
+    bookinglog = BookingLog.query.filter_by(bookingID=bookingID).first()
+    if bookinglog:
+        return jsonify(
+            {
+                "code": 200,
+                "data": bookinglog.json()
+            }
+        )
+    return jsonify(
+        {
+            "code": 404,
+            "message": "Booking not found."
+        }
+    ), 404
 
 # get all booking by accountID
 @app.route("/bookinglog/<int:accountID>")
