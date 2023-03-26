@@ -52,37 +52,54 @@ def getPaymentAccount(accountID):
 def deduct():
     print("deducting credits")
     data = request.get_json()
-    account_id = data['accountID']
+    account_ids = data['accountID']
     amount = data['amount']
 
-    account = accounts.query.get(account_id)
-    AccountErrorMessage = "Account with ID " + str(account_id) + " does not exist"
-    if account is None:
+    notFound = False
+    insufficientFund = False
+    accountsNotFound = []
+    accountsWithInsufficientFunds = []
+    for accountID in account_ids:
+        account = accounts.query.get(accountID)
+        if account is None:
+            notFound = True
+            accountsNotFound.append(accountID)
+            continue
+        if account.balance < amount:
+            insufficientFund = True
+            accountsWithInsufficientFunds.append(accountID)
+            continue
+    # returning Error for all the accounts that cannot be found            
+    if notFound == True:
         return jsonify({
             "code": 404,
             "data": {
-                "accountID": account_id
+                "accountID": accountsNotFound
             },
-            "message": AccountErrorMessage
+            "message": "These accounts do not exist."
         }), 404
-    if account.balance < amount:
+    # returning Error for all the accounts that have insufficient funds
+    if insufficientFund == True:
         return jsonify({
             "code": 400,
             "data": {
-                "accountID": account_id
+                "accountID": accountsWithInsufficientFunds
             },
-            "message": "Insufficient funds."
+            "message": "Insufficient funds for these accounts."
         }), 404
-    account.balance -= amount
-    db.session.commit()
+    
+    # only deduct from all accounts if there are no errors. Prevent partial deduction
+    for accountID in account_ids:
+        account = accounts.query.get(accountID)
+        account.balance -= amount
+        db.session.commit()
 
-    successMessage = "Successfully deducted " + str(amount) + " credits from account " + str(account_id)
+    successMessage = "Successfully deducted " + str(amount) + " credits from the accounts." 
     return jsonify(
             {
                 "code": 200,
                 "data": {
-                    "accountID": account_id,
-                    "accountBalance": account.balance
+                    "accountID": account_ids,
                 },
                 "message": successMessage
             }
@@ -92,30 +109,37 @@ def deduct():
 @app.route('/payment/add', methods=['POST'])
 def refund():
     data = request.get_json()
-    account_id = data['accountID']
+    account_ids = data['accountID']
     amount = data['amount']
 
-    AccountErrorMessage = "Account with ID " + str(account_id) + " does not exist"
-    account = accounts.query.get(account_id)
-    if account is None:
+    notFound = False
+    accountsNotFound = []
+    accountsFound = []
+    for accountID in account_ids:
+        account = accounts.query.get(accountID)
+        if account is None:
+            notFound = True
+            accountsNotFound.append(accountID)
+            continue
+        accountsFound.append(accountID)
+        account.balance += amount
+        db.session.commit()
+    # returning Error for all the accounts that cannot be found            
+    if notFound == True:
         return jsonify({
             "code": 404,
             "data": {
-                "accountID": account_id
+                "accountID": accountsNotFound
             },
-            "message": AccountErrorMessage
+            "message": "These accounts do not exist."
         }), 404
 
-    account.balance += amount
-    db.session.commit()
-
-    successMessage = "Successfully refunded " + str(amount) + " credits from account " + str(account_id)
+    successMessage = "Successfully refunded " + str(amount) + " credits to the accounts."
     return jsonify(
             {
                 "code": 200,
                 "data": {
-                    "accountID": account_id,
-                    "accountBalance": account.balance
+                    "accountID": accountsFound,
                 },
                 "message": successMessage
             }
