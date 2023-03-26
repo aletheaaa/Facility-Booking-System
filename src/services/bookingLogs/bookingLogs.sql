@@ -52,7 +52,7 @@ DROP TABLE IF EXISTS `coBooker`;
 CREATE TABLE IF NOT EXISTS `coBooker` (
   `accountID` int(11) NOT NULL,
   `bookingID` int(11) NOT NULL,
-  `paidStatus` char(13) NOT NULL,
+  `acceptStatus` char(13) NOT NULL,
   PRIMARY KEY (`accountID`, `bookingID`),
   KEY `FK_booking_id` (`bookingID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
@@ -61,9 +61,9 @@ CREATE TABLE IF NOT EXISTS `coBooker` (
 -- Dumping data for table `order_item`
 --
 
-INSERT INTO `coBooker` (`accountID`, `bookingID`, `paidStatus`) VALUES
-(1, 1, 'False'),
-(2, 1, 'False');
+INSERT INTO `coBooker` (`accountID`, `bookingID`, `acceptStatus`) VALUES
+(2, 1, 'False'),
+(3, 1, 'False');
 
 --
 -- Constraints for dumped tables

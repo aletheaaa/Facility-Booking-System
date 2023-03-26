@@ -3,7 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from os import environ
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://is213@localhost:3306/accounts" 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -49,6 +50,7 @@ def getPaymentAccount(accountID):
 # deduct credits
 @app.route('/payment/deduct', methods=['POST'])
 def deduct():
+    print("deducting credits")
     data = request.get_json()
     account_id = data['accountID']
     amount = data['amount']
@@ -120,4 +122,4 @@ def refund():
         )
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=True)
