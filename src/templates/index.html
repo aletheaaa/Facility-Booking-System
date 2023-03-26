@@ -44,7 +44,7 @@
 							<div class="booking-form">
 								<div class="form-group">
 									<span class="form-label">Room Location</span>
-									<select class="form-control" id="location" v-model="roomlocation">
+									<select class="form-control" id="location" v-model="roomlocation" required>
 										<option value="soa">SOA</option>
 										<option value="sob">SOB</option>
 										<option value="scis">SCIS</option>
@@ -55,7 +55,7 @@
 								</div>
 								<div class="form-group">
 									<span class="form-label">Room Type</span>
-									<select class="form-control" id="roomtype" v-model="roomtype">
+									<select class="form-control" id="roomtype" v-model="roomtype" required>
 										<option value="seminar">Seminar Room</option>
 										<option value="Group Study Room">Group Study Room</option>
 										<option value="classroom">Classroom</option>
@@ -107,7 +107,7 @@
 									<div class="col-sm-6">
 										<div class="form-group">
 											<span class="form-label">Duration</span>
-											<select class="form-control" id="duration" v-model="duration">
+											<select class="form-control" id="duration" v-model="duration" required>
 												<option>1</option>
 												<option>2</option>
 												<option>3</option>
@@ -184,14 +184,7 @@
 					console.log(this.duration);
 					//fetch rooms 
 					// fetch(`${get_rooms}?location=${this.roomlocation}&type=${this.roomtype}&date=${this.date}&starttime=${this.starttime}&duration=${this.duration}}`,
-					fetch(`${get_rooms}`,
-					{
-						method: "GET",
-						headers: {
-							"Content-type": "application/json"
-						},
-						body: jsonData
-					})
+					fetch(get_rooms)
 					.then(response => response.json())
 					.then(data => {
 						this.rooms = data;
