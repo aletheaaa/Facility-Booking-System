@@ -5,8 +5,8 @@ from os import environ
 from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-# app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs"
+# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -93,7 +93,7 @@ def find_by_bookingID(bookingID):
         }
     ), 404
 
-# get all booking by accountID
+# get all booking by accountID as the original booker
 @app.route("/bookinglog/<int:accountID>")
 def find_by_accountID(accountID):
     bookingloglist = BookingLog.query.filter_by(accountID=accountID).all()
@@ -113,6 +113,25 @@ def find_by_accountID(accountID):
         }
     ), 404
 
+# get all booking by accountID as a coBooker
+@app.route("/bookinglog/coBooker/<int:accountID>")
+def find_by_coBooker(accountID):
+    bookingloglist = CoBooker.query.filter_by(accountID=accountID).all()
+    if len(bookingloglist):
+        return jsonify(
+            {
+                "code": 200,
+                "data": {
+                    "bookinglogs": [bookinglog.json() for bookinglog in bookingloglist]
+                }
+            }
+        )
+    return jsonify(
+        {
+            "code": 404,
+            "message": "No booking as a coBooker found."
+        }
+    ), 404
 
 # get all the bookings for the selected fields to get the available rooms
 @app.route("/bookinglog/getTaken", methods=['GET'])
