@@ -60,64 +60,88 @@ services:
   #################################
   # Payment: The Payment microservice
   #################################
-  payment:
-    build: 
-      context: ./payment
-      dockerfile: Dockerfile
-    image: aletheatohh/payment:1.0
-    restart: always
-    networks:
-      - update-booking-network
-      - make-bookings-network
-    environment:
-      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/accounts
-    ports:
-      - "5002:5002"
-  
-  # #################################
-  # # Room: The Room microservice
-  # #################################
-  # room:
-  #   image: aletheatohh/room:1.0
+  # payment:
+  #   build: 
+  #     context: ./payment
+  #     dockerfile: Dockerfile
+  #   image: aletheatohh/payment:1.0
   #   restart: always
-  #   environment:
-  #     MYSQL_DB_LINK: jdbc:mysql://mysql-room:3306/roomdb
-  #   depends_on:
-  #     - db
-  #   links:
-  #     - db
-  #   ports:
-  #     - "8080:8080"
   #   networks:
+  #     - update-booking-network
   #     - make-bookings-network
-  #     - access-booking-network
-
-  # #################################
-  # # MySQL: The official image for MySQL
-  # #################################
-  # db:
-  #   container_name: mysql-room
-  #   image: mysql
-  #   restart: always
   #   environment:
-  #     MYSQL_PASSWORD: ESDT5
-  #     MYSQL_DATABASE: roomdb
-  #     MYSQL_ROOT_PASSWORD: ESDT5
-  #     MYSQL_USER: IS213Room
-  #   expose:
-  #     - "3306"
+  #     dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/accounts
+  #   ports:
+  #     - "5002:5002"
+  
+  #################################
+  # Room: The Room microservice
+  #################################
+  room:
+    image: aletheatohh/room:1.0
+    restart: always
+    environment:
+      MYSQL_DB_LINK: jdbc:mysql://mysql-room:3306/roomdb
+    depends_on:
+      - db
+    links:
+      - db
+    ports:
+      - "8080:8080"
+    networks:
+      - access-booking-network
 
   #################################
-  # updateBooking: The official image for MySQL
+  # MySQL: The official image for MySQL
   #################################
-  updatebooking:
-    image: aletheatohh/updatebooking:1.0
+  db:
+    container_name: mysql-room
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_PASSWORD: ESDT5
+      MYSQL_DATABASE: roomdb
+      MYSQL_ROOT_PASSWORD: ESDT5
+      MYSQL_USER: IS213Room
+    expose:
+      - "3306"
+    networks:
+      - access-booking-network
+
+  ################################
+  # updateBooking: The updateBooking microservice
+  ################################
+  # updatebooking:
+  #   image: aletheatohh/updatebooking:1.0
+  #   restart: always
+  #   build:
+  #     context: ./updateBooking
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "5003:5003"
+  #   networks:
+  #     - update-booking-network
+  #   depends_on:
+  #     - payment
+  #     - bookinglogs
+  #     # - notif
+
+  #################################
+  # accessavailablebooking: The accessavailablebooking microservice
+  #################################
+  accessavailablebooking:
+    image: aletheatohh/accessavailablebooking:1.0
     restart: always
     build:
-      context: ./updateBooking
+      context: ./accessAvailableBooking
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "5003:5003"
+      - "5004:5004"
     networks:
-      - update-booking-network
+      - access-booking-network
+    depends_on:
+      - db
+      - room
+      - bookinglogs
