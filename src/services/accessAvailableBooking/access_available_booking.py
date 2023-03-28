@@ -1,3 +1,4 @@
+import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -9,20 +10,17 @@ from invokes import invoke_http
 app = Flask(__name__)
 CORS(app)
 
-room_URL = "http://localhost:8080/rooms/getSpecificRooms"
-booking_log_URL = "http://localhost:5000/bookinglog/getTaken"
+room_URL = "http://host.docker.internal:8080/rooms"
 
-@app.route("/access_available_booking", methods=['GET'])
+# bookingLogs_URL = "http://localhost:5001/bookinglog"
+bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
+
+@app.route("/accessAvailableBooking", methods=['GET'])
 def access_available_booking():
-    # Simple check of input format and data of the request are JSON
     if request.is_json:
         try:
-            room = request.get_json()
-            print("\nReceived an order in JSON:", room)
-
-            # do the actual work
-            # 1. Send order info {cart items}
-            result = processAccessAvailableBooking(room)
+            roomSpecifications = request.get_json()
+            result = processAccessAvailableBooking(roomSpecifications)
             return jsonify(result), result["code"]
 
         except Exception as e:
@@ -45,47 +43,48 @@ def access_available_booking():
     }), 400
 
 def processAccessAvailableBooking(room):
-# 1. get room by user specifications
-# Invoke the room microservice
-    print('\n-----Invoking room microservice-----')
-    room_result = invoke_http(room_URL, method='GET', json=room)
-    print('room_result:', room_result)
+    # calling room microservice to get a list of rooms based on user specifications
+    roomResult = invoke_http(room_URL + "/getSpecificRooms", method='GET', json=room)
+    # print(roomResult)
 
-# 2. get booked rooms by roomID
-    print('\n\n-----Invoking bookingLogs microservice-----')
-    booking_log_result = invoke_http(booking_log_URL, method="GET", json=room_result)
-    print('booking_log_result:', booking_log_result)
+    # calling bookingLogs microservice to get a list of booked rooms
+    roomIDs = []
+    for i in roomResult["data"]:
+        roomIDs.append(i["roomId"])
+    roomsJson = json.dumps({"roomID": roomIDs})
+    # print(roomsJson)
 
-# Check the room result; if a failure, return error.
-    code = room_result["code"]
-    if code not in range(200, 300):
-
-        # 3. Return error
+    if roomResult["code"] not in range(200, 300):
         return {
-            "code": 500,
-            "data": {"room_result": room_result},
-            "message": "Failed to fetch rooms based on user specifications."
-        }
-
-# Check the booking logs result; 
-    # if a failure, return error.
-    code = booking_log_result["code"]
-    if code not in range(200, 300):
-
-        # 4. Return error
+                "code": 500,
+                "message": "Error retreiving rooms."
+            }
+    elif len(roomResult["data"]) == 0:
         return {
-            "code": 500,
-            "data": {
-                "room_result": room_result,
-                "booking_log_result": booking_log_result
-            },
-            "message": "Failed to get booked rooms by room ID."
-        }
-# 5. Return booking details of rooms requested by user
+                "code": 404,
+                "message": "No rooms with user specifications found."
+            }
+
+    bookingLogResult = invoke_http(bookingLogs_URL + "/getTaken", method='GET', json=roomsJson)
+    print("this is bookingLogResult")
+    print(bookingLogResult)
+
+    if bookingLogResult["code"] not in range(200, 300):
+        if bookingLogResult["code"] == 404:
+            return {
+                "code": 200,
+                "message": "No bookings based on user's specifications found."
+            }
+        else:
+            return {
+                "code": 500,
+                "message": "Error retreiving taken booking logs."
+            }
     return {
         "code": 200,
-        "data": {
-            "room_result": room_result,
-            "booking_log_result": booking_log_result
-        }
+        "data": bookingLogResult,
     }
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5004, debug=True)
