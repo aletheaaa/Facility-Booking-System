@@ -1,4 +1,4 @@
-import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth'
+import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth'
 import { initializeApp } from 'firebase/app';
 import router from '../router/index.js';
 
@@ -20,6 +20,31 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // const auth = getAuth();
+export const isLoggedIn = () => {
+    onAuthStateChanged(getAuth(), (currentUser) => {
+        if (currentUser != null) {
+            router.push('/main')
+            console.log("Logged in user: " + currentUser)
+            return true
+        } else {
+            router.push('/')
+            return false
+        }
+    })
+}
+
+// signing the user out 
+export const signout = () => {
+    signOut(getAuth())
+        .then(() => {
+            console.log('Signed Out');
+            router.push('/')
+        })
+        .catch(e => {
+            console.error('Sign Out Error', e);
+        });
+};
+
 
 export const login = () => {
     console.log("Handling signin")

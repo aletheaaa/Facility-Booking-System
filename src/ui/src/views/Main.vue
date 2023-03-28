@@ -1,4 +1,9 @@
 <template>
+    <!-- <nav>
+        <button @click="signout()">
+            Sign Out
+        </button>
+    </nav> -->
     <div class="booking-cta" v-show="!displayRooms">
         <h1 class="display-1 text-light font-weight-bold">SMU <br>Facilities Booking System</h1>
     </div>
@@ -118,6 +123,7 @@
 </template>
 
 <script>
+import { signout } from '../utils'
 export default {
     name: 'Main',
     data() {
@@ -158,7 +164,8 @@ export default {
         },
         bookRoom() {
             console.log("book room");
-        }
+        },
+        signout
         
     },
 }
