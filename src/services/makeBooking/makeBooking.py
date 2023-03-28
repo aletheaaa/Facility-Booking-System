@@ -1,5 +1,5 @@
-import sys
-sys.path.append('../utils')  # Add parent directory to Python path
+#import sys
+#sys.path.append('../utils')  # Add parent directory to Python path
 
 from invokes import invoke_http  # Import the function from the module
 
@@ -16,15 +16,11 @@ app = Flask(__name__)
 CORS(app)
 
 booking_logs_url = "http://localhost:5000/bookinglog"
-payment_url = "http://localhost:5300/payment/deduct"
+payment_url = "http://localhost:5002/payment/deduct"
 
 queueName = 'notification'
 exchangeName = 'fbs'
 routingKey = 'email.notifications'
-
-#json to test
-#{"accountID":1, "startTime":1100,"endTime":1200,"price":12,"roomID":12345,"amount":12}
-
 
 @app.route("/makeBooking", methods=['POST'])
 def makeBooking():
