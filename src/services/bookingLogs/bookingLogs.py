@@ -1,3 +1,4 @@
+import json
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -5,8 +6,8 @@ from os import environ
 from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs"
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+# app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -117,6 +118,7 @@ def find_by_accountID(accountID):
 @app.route("/bookinglog/coBooker/<int:accountID>")
 def find_by_coBooker(accountID):
     bookingloglist = CoBooker.query.filter_by(accountID=accountID).all()
+    # print(bookingloglist)
     if len(bookingloglist):
         return jsonify(
             {
@@ -137,6 +139,9 @@ def find_by_coBooker(accountID):
 @app.route("/bookinglog/getTaken", methods=['GET'])
 def find_booking():
     data = request.get_json()
+    if type(data) == str:
+        data = json.loads(data)
+    print("bookinglog/getTaken isk called")
     if (data == None or len(data["roomID"]) == 0):
         return jsonify({
             "code": 400,
