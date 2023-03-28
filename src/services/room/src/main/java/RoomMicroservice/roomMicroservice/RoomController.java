@@ -59,9 +59,9 @@ public class RoomController {
     @GetMapping("/rooms/getSpecificRooms")
     public JSONObject fetchSpecificRoomList(@RequestBody UserFields body){
         JSONObject successJsonObject = new JSONObject();
-        if (body.getLocation() != null && body.getLocation() != null){
+        if (!body.getLocation().isEmpty() && !body.getRoomType().isEmpty()){
             successJsonObject.put("data", roomService.fetchRoomByRoomTypeAndLocation(body.getRoomType(), body.getLocation()));
-        } else if (body.getRoomType() == null) {
+        } else if (body.getRoomType().isEmpty()) {
             successJsonObject.put("data", roomService.fetchRoomByLocation(body.getLocation()));
         } else {
             successJsonObject.put("data", roomService.fetchRoomByRoomType(body.getRoomType()));
