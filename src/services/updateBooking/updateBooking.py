@@ -62,7 +62,12 @@ def getAvailableBooking():
             allAccounts.append(coBooker["accountID"])
         paymentData = { "accountID": allAccounts, "amount": amountForEachBooker }
         order_result = invoke_http(payment_URL + "/deduct", method='POST', json=paymentData)
-        print(order_result) 
+        if order_result["code"] != 200:
+            return jsonify({
+                "code": order_result["code"],
+                "data": str(data),
+                "message": order_result["message"]
+            }), order_result["code"]
 
     '''connecting to notification microservice'''
     # connect to notification service to send notification to

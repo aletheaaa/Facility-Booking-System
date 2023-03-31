@@ -3,8 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from os import environ
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://is213@localhost:3306/accounts" 
+# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://is213@localhost:3306/accounts" 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -53,8 +53,8 @@ def deduct():
     print("deducting credits")
     data = request.get_json()
     account_ids = data['accountID']
+    originalBookerID = data['accountID'][0]
     amount = data['amount']
-    total_amount_of_all_accounts = len(account_ids) * amount
 
     accountsNotFound = []
     accountsWithInsufficientFunds = []
@@ -66,11 +66,12 @@ def deduct():
             continue
         if account.balance < amount:
             accountsWithInsufficientFunds.append(accountID)
-            continue
+            continue    
         validAccounts.append(accountID)
     
     # only deduct from all accounts if there are no errors. Recalculate credits to deduct if necessary. Prevent partial deduction
-    message = ""
+    # to prevent cases of insufficient funds of accounts again, total amount owed from all invalid accounts or those with insufficient funds will be added to credits deducted from original booker account
+    # ^(original booker is confirmed to have sufficient funds on booking creation & payment deduction happens on booking creation)
     if len(validAccounts) == 0:
         return jsonify(
             {
@@ -84,10 +85,13 @@ def deduct():
                 "message": "No valid accounts with insufficient funds found."
             }), 404
     elif len(validAccounts) != len(account_ids):
-        amount = total_amount_of_all_accounts / len(validAccounts)
+        costByInvalidAccounts = (len(account_ids) - len(validAccounts)) * amount
     for accountID in validAccounts:
         account = accounts.query.get(accountID)
-        account.balance -= amount
+        if accountID == originalBookerID:
+            account.balance -= (amount + costByInvalidAccounts)
+        else:
+            account.balance -= amount
         db.session.commit()
 
     return jsonify(
