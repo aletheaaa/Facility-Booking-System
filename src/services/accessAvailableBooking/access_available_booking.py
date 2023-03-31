@@ -4,7 +4,6 @@ from flask_cors import CORS
 
 import os, sys
 
-import requests
 from invokes import invoke_http
 
 app = Flask(__name__)
@@ -43,6 +42,13 @@ def access_available_booking():
     }), 400
 
 def processAccessAvailableBooking(room):
+    # user must input at least one of the two to prevent returning all rooms which requires a lot of processing
+    if len(room['roomType']) == 0 and len(room['location']) == 0:
+        return {
+                "code": 400,
+                "message": "No room type or location specified."
+        }
+    
     # calling room microservice to get a list of rooms based on user specifications
     roomResult = invoke_http(room_URL + "/getSpecificRooms", method='GET', json=room)
     # print(roomResult)
@@ -70,16 +76,10 @@ def processAccessAvailableBooking(room):
     print(bookingLogResult)
 
     if bookingLogResult["code"] not in range(200, 300):
-        if bookingLogResult["code"] == 404:
-            return {
-                "code": 200,
-                "message": "No bookings based on user's specifications found."
-            }
-        else:
-            return {
-                "code": 500,
-                "message": "Error retreiving taken booking logs."
-            }
+        return {
+            "code": 200,
+            "message": "No bookings based on user's specifications found."
+        }
     return {
         "code": 200,
         "data": bookingLogResult,
