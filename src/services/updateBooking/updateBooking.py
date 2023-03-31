@@ -1,8 +1,6 @@
-import os, sys
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-import requests
 from invokes import invoke_http
 
 app = Flask(__name__)
@@ -21,24 +19,37 @@ payment_URL = "http://host.docker.internal:5002/payment"
 @app.route("/coBookerAccepts", methods=["PUT"])
 def getAvailableBooking():
     data = request.get_json()
-    # update acceptStatus in bookingLogs
     '''connecting to bookinglogs microservice'''
+    # update acceptStatus in bookingLogs
+    # the accountID in data is the accountID of the coBooker
     booking_result = invoke_http(bookingLogs_URL + "/coBookerAccept", method='PUT', json=data)
-    # print(booking_result)  # {'code': 200, 'data': {'acceptStatus': 'True', 'accountID': 2, 'bookingID': 1}}
     if booking_result["code"] != 200:
         return jsonify({
-            "code": 400,
+            "code": booking_result["code"],
             "data": str(data),
-            "message": "coBooker not found."
-        }), 400
-    
+            "message": booking_result["message"]
+        }), booking_result["code"]
 
     '''connecting to payment microservice'''
     # if all of the cobookers have accepted the booking, deduct credits from coBookers and original booker
     # the amount passed from the frontend is the total amount of credits to be deducted. this amount still needs to be divided by the number of coBookers
     # deduct credits from coBooker
     bookingLog = invoke_http(bookingLogs_URL + "/" + str(data["bookingID"]), method='GET')
-    # looping through the coBookers to see if all of them have accepted the booking
+    if bookingLog["code"] != 200:
+        return jsonify({
+            "code": bookingLog["code"],
+            "data": str(data),
+            "message": bookingLog["message"]
+        }), bookingLog["code"]
+
+    if len(bookingLog["data"]["coBooker"]) == 0:
+        return jsonify({
+            "code": 404,
+            "data": str(data),
+            "message": "Wrong bookingID provided."
+        }), 404
+
+    # looping through the coBookers to see if all of them have accepted the booking to see if credits need to be subtracted from this coBooker
     allAccepted = True
     for coBooker in bookingLog["data"]["coBooker"]:
         if coBooker["acceptStatus"] == "False":
@@ -55,7 +66,7 @@ def getAvailableBooking():
 
     '''connecting to notification microservice'''
     # connect to notification service to send notification to
-
+    
 
     return jsonify({
             "code": 200,

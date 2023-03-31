@@ -54,56 +54,54 @@ def deduct():
     data = request.get_json()
     account_ids = data['accountID']
     amount = data['amount']
+    total_amount_of_all_accounts = len(account_ids) * amount
 
-    notFound = False
-    insufficientFund = False
     accountsNotFound = []
     accountsWithInsufficientFunds = []
+    validAccounts = []
     for accountID in account_ids:
         account = accounts.query.get(accountID)
         if account is None:
-            notFound = True
             accountsNotFound.append(accountID)
             continue
         if account.balance < amount:
-            insufficientFund = True
             accountsWithInsufficientFunds.append(accountID)
             continue
-    # returning Error for all the accounts that cannot be found            
-    if notFound == True:
-        return jsonify({
-            "code": 404,
-            "data": {
-                "accountID": accountsNotFound
-            },
-            "message": "These accounts do not exist."
-        }), 404
-    # returning Error for all the accounts that have insufficient funds
-    if insufficientFund == True:
-        return jsonify({
-            "code": 400,
-            "data": {
-                "accountID": accountsWithInsufficientFunds
-            },
-            "message": "Insufficient funds for these accounts."
-        }), 404
+        validAccounts.append(accountID)
     
-    # only deduct from all accounts if there are no errors. Prevent partial deduction
-    for accountID in account_ids:
+    # only deduct from all accounts if there are no errors. Recalculate credits to deduct if necessary. Prevent partial deduction
+    message = ""
+    if len(validAccounts) == 0:
+        return jsonify(
+            {
+                "code": 404,
+                "data": {
+                    "accountID": account_ids,
+                    "amount": amount,
+                    "accountsNotFound": accountsNotFound,
+                    "accountsWithInsufficientFunds": accountsWithInsufficientFunds
+                },
+                "message": "No valid accounts with insufficient funds found."
+            }), 404
+    elif len(validAccounts) != len(account_ids):
+        amount = total_amount_of_all_accounts / len(validAccounts)
+    for accountID in validAccounts:
         account = accounts.query.get(accountID)
         account.balance -= amount
         db.session.commit()
 
-    successMessage = "Successfully deducted " + str(amount) + " credits from the accounts." 
     return jsonify(
             {
                 "code": 200,
                 "data": {
                     "accountID": account_ids,
+                    "amount": amount,
+                    "accountsNotFound": accountsNotFound,
+                    "accountsWithInsufficientFunds": accountsWithInsufficientFunds
                 },
-                "message": successMessage
+                "message": "Successfully deducted " + str(amount) + " credits from the accounts."
             }
-        )
+        ), 200
 
 # add credits
 @app.route('/payment/add', methods=['POST'])
@@ -112,27 +110,16 @@ def refund():
     account_ids = data['accountID']
     amount = data['amount']
 
-    notFound = False
     accountsNotFound = []
     accountsFound = []
     for accountID in account_ids:
         account = accounts.query.get(accountID)
         if account is None:
-            notFound = True
             accountsNotFound.append(accountID)
             continue
         accountsFound.append(accountID)
         account.balance += amount
         db.session.commit()
-    # returning Error for all the accounts that cannot be found            
-    if notFound == True:
-        return jsonify({
-            "code": 404,
-            "data": {
-                "accountID": accountsNotFound
-            },
-            "message": "These accounts do not exist."
-        }), 404
 
     successMessage = "Successfully refunded " + str(amount) + " credits to the accounts."
     return jsonify(
@@ -140,10 +127,12 @@ def refund():
                 "code": 200,
                 "data": {
                     "accountID": accountsFound,
+                    "amount": amount,
+                    "accountsNotFound": accountsNotFound,
                 },
                 "message": successMessage
             }
-        )
+        ), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002, debug=True)
