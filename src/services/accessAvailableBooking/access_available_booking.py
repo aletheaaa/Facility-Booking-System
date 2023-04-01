@@ -18,6 +18,7 @@ bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
 def access_available_booking():
     if request.is_json:
         try:
+            print(request)
             roomSpecifications = request.get_json()
             result = processAccessAvailableBooking(roomSpecifications)
             return jsonify(result), result["code"]
@@ -31,7 +32,7 @@ def access_available_booking():
 
             return jsonify({
                 "code": 500,
-                "message": "place_order.py internal error: " + ex_str
+                "message": "accessAvailableBooking.py internal error: " + ex_str
             }), 500
 
 
@@ -72,9 +73,8 @@ def processAccessAvailableBooking(room):
             }
 
     bookingLogResult = invoke_http(bookingLogs_URL + "/getTaken", method='GET', json=roomsJson)
-    print("this is bookingLogResult")
-    print(bookingLogResult)
-
+    # print(bookingLogResult)
+    
     if bookingLogResult["code"] not in range(200, 300):
         return {
             "code": 200,
