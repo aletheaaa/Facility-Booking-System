@@ -11,16 +11,15 @@ CORS(app)
 
 room_URL = "http://host.docker.internal:8080/rooms"
 
-# bookingLogs_URL = "http://localhost:5001/bookinglog"
-bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
+bookingLogs_URL = "http://localhost:5001/bookinglog"
+# bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
 
-@app.route("/accessAvailableBooking", methods=['POST'])
-def access_available_booking():
+@app.route("/accessTakenBooking", methods=['POST'])
+def access_taken_booking():
     if request.is_json:
         try:
-            print(request)
             roomSpecifications = request.get_json()
-            result = processAccessAvailableBooking(roomSpecifications)
+            result = getTakenBooking(roomSpecifications)
             return jsonify(result), result["code"]
 
         except Exception as e:
@@ -32,7 +31,7 @@ def access_available_booking():
 
             return jsonify({
                 "code": 500,
-                "message": "accessAvailableBooking.py internal error: " + ex_str
+                "message": "accessTakenBooking.py internal error: " + ex_str
             }), 500
 
 
@@ -42,23 +41,23 @@ def access_available_booking():
         "message": "Invalid JSON input: " + str(request.get_data())
     }), 400
 
-def processAccessAvailableBooking(room):
+def getTakenBooking(data):
     # user must input at least one of the two to prevent returning all rooms which requires a lot of processing
-    if len(room['roomType']) == 0 and len(room['location']) == 0:
+    if len(data['roomType']) == 0 and len(data['location']) == 0:
         return {
                 "code": 400,
                 "message": "No room type or location specified."
         }
     
     # calling room microservice to get a list of rooms based on user specifications
-    roomResult = invoke_http(room_URL + "/getSpecificRooms", method='GET', json=room)
+    roomResult = invoke_http(room_URL + "/getSpecificRooms", method='GET', json=data)
     # print(roomResult)
 
     # calling bookingLogs microservice to get a list of booked rooms
     roomIDs = []
     for i in roomResult["data"]:
         roomIDs.append(i["roomId"])
-    roomsJson = json.dumps({"roomID": roomIDs})
+    roomsJson = json.dumps({"roomID": roomIDs, "dateChosen": data["dateChosen"]})
     # print(roomsJson)
 
     if roomResult["code"] not in range(200, 300):
