@@ -133,13 +133,13 @@ services:
   #     # - notif
 
   #################################
-  # accessavailablebooking: The accessavailablebooking microservice
+  # accesstakenbooking: The accesstakenbooking microservice
   #################################
-  accessavailablebooking:
-    image: aletheatohh/accessavailablebooking:1.0
+  accesstakenbooking:
+    image: aletheatohh/accesstakenbooking:1.0
     restart: always
     build:
-      context: ./accessAvailableBooking
+      context: ./accessTakenBooking
       dockerfile: Dockerfile
     ports:
       - "5004:5004"

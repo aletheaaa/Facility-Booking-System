@@ -11,8 +11,8 @@ CORS(app)
 
 room_URL = "http://host.docker.internal:8080/rooms"
 
-bookingLogs_URL = "http://localhost:5001/bookinglog"
-# bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
+# bookingLogs_URL = "http://localhost:5001/bookinglog"
+bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
 
 @app.route("/accessTakenBooking", methods=['POST'])
 def access_taken_booking():
