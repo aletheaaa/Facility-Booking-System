@@ -3,8 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from os import environ
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://is213@localhost:3306/accounts" 
+# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://is213@localhost:3306/accounts" 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -43,6 +43,27 @@ def get_all():
         {
             "code": 404,
             "message": "There are no accounts."
+        }
+    ), 404
+
+# get accountID from email
+@app.route("/payment/getAccountID/<string:email>", methods=["GET"])
+def get_accountID(email):
+    account = accounts.query.filter_by(email=email).first()
+    if account:
+        return jsonify(
+            {
+                "code": 200,
+                "data": {
+                    "accountID": account.accountID,
+                    "balance": account.balance
+                }
+            }
+        )
+    return jsonify(
+        {
+            "code": 404,
+            "message": "Account with email " + email + " does not exist."
         }
     ), 404
 
