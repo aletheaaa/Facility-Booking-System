@@ -4,8 +4,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
 from sqlalchemy.orm import relationship
+from datetime import date, datetime
+from sqlalchemy import func
 
 app = Flask(__name__)
+CORS(app)
+
 # app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -148,8 +152,14 @@ def find_booking():
         })
 
     final = []
+    # fillter the bookinglogs by date
+    date_list = data['dateChosen'].split("-")
+    bookingDate = date(int(date_list[0]), int(date_list[1]), int(date_list[2]))
+    bookinglog = BookingLog.query.filter(func.date(BookingLog.startTime) == bookingDate).all()
+    # roomIDs are rooms that fit user specifications: location & roomType
     for i in data["roomID"]:
-        bookinglog = BookingLog.query.filter_by(roomID=i).all()
+        bookinglog = list(filter(lambda x: x.roomID == i, bookinglog))
+        print(bookinglog)
         final.extend(bookinglog)
     if len(final) != 0:
         return jsonify(
