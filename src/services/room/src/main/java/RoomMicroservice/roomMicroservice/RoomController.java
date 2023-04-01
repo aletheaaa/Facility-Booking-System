@@ -45,6 +45,7 @@ public class RoomController {
     }
 
     // Read operation
+    @CrossOrigin
     @GetMapping("/rooms")
     public JSONObject fetchRoomList()
     {
