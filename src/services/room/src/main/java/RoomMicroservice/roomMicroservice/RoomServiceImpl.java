@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class RoomServiceImpl implements RoomService {
@@ -35,6 +36,9 @@ public class RoomServiceImpl implements RoomService {
         return (List<Room>) roomRepository.findRoomsByRoomTypeAndCapacity(roomType, location);
     };
 
+    public Room getRoomByRoomId(Integer roomId) {
+        return roomRepository.findById(roomId).get();
+    }
 
     //    @Override
     public Room updateRoom(Room room, Integer roomId) {
