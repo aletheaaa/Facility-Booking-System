@@ -129,7 +129,7 @@ def deduct():
         costByInvalidAccounts = (len(account_ids) - len(validAccounts)) * amount
     for accountID in validAccounts:
         account = accounts.query.filter_by(accountID=accountID).first()
-        if accountID == originalBookerID:
+        if accountID == originalBookerID and len(validAccounts) != len(account_ids):
             account.balance -= (amount + costByInvalidAccounts)
         else:
             account.balance -= amount

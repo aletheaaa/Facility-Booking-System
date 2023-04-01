@@ -26,7 +26,7 @@ def getAvailableBooking():
     if booking_result["code"] != 200:
         return jsonify({
             "code": booking_result["code"],
-            "data": str(data),
+            "data": data,
             "message": booking_result["message"]
         }), booking_result["code"]
 
@@ -38,14 +38,14 @@ def getAvailableBooking():
     if bookingLog["code"] != 200:
         return jsonify({
             "code": bookingLog["code"],
-            "data": str(data),
+            "data": data,
             "message": bookingLog["message"]
         }), bookingLog["code"]
 
     if len(bookingLog["data"]["coBooker"]) == 0:
         return jsonify({
             "code": 404,
-            "data": str(data),
+            "data": data,
             "message": "Wrong bookingID provided."
         }), 404
 
@@ -61,11 +61,11 @@ def getAvailableBooking():
         for coBooker in bookingLog["data"]["coBooker"]:
             allAccounts.append(coBooker["accountID"])
         paymentData = { "accountID": allAccounts, "amount": amountForEachBooker }
-        order_result = invoke_http(payment_URL + "/deduct", method='POST', json=paymentData)
+        order_result = invoke_http(payment_URL + "/deduct", method='PUT', json=paymentData)
         if order_result["code"] != 200:
             return jsonify({
                 "code": order_result["code"],
-                "data": str(data),
+                "data": data,
                 "message": order_result["message"]
             }), order_result["code"]
 
@@ -75,7 +75,7 @@ def getAvailableBooking():
 
     return jsonify({
             "code": 200,
-            "data": str(data),
+            "data": data,
             "message": "Successfully updated booking"
         }), 200
 

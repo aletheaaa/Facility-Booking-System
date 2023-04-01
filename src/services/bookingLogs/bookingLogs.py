@@ -231,8 +231,12 @@ def update_booking():
             "message": "Provide all the fields."
         })
     coBooker = CoBooker.query.filter_by(accountID=data["accountID"], bookingID=data["bookingID"]).first()
-    print(coBooker)
     if coBooker:
+        if coBooker.acceptStatus == "True":
+            return jsonify({
+                "code": 400,
+                "message": "You have already accepted this booking."
+            })
         coBooker.acceptStatus = "True"
         db.session.commit()
         return jsonify(
