@@ -4,7 +4,7 @@
             Sign Out
         </button>
     </nav> -->
-    <div class="booking-cta" v-show="!displayRooms">
+    <div class="booking-cta">
         <h1 class="display-1 text-light font-weight-bold">SMU <br>Facilities Booking System</h1>
     </div>
     <div id="app">
@@ -12,7 +12,7 @@
             <div class="booking-form w-100 p-5 bg-light">
                 <div class="form-group">
                     <span class="form-label">Room Location</span>
-                    <select class="form-control" id="location" v-model="roomlocation" required>
+                    <select class="form-control" id="location" v-model="roomlocation" >
                         <option value="School of Accountancy">SOA</option>
                         <option value="School of Business">SOB</option>
                         <option value="School of Computing and Information Systems">SCIS</option>
@@ -38,7 +38,7 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <span class="form-label">Start Time</span>
-                            <select name="time" id="time" class="form-control" v-model="starttime">
+                            <select name="time" id="starttime" class="form-control" v-model="starttime">
                                 <option value="0800">0800</option>
                                 <option value="0830">0830</option>
                                 <option value="0900">0900</option>
@@ -75,7 +75,7 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <span class="form-label">End Time</span>
-                            <select name="time" id="time" class="form-control" v-model="starttime">
+                            <select name="time" id="endtime" class="form-control" v-model="endtime">
                                 <option value="0800">0800</option>
                                 <option value="0830">0830</option>
                                 <option value="0900">0900</option>
@@ -124,8 +124,6 @@
                     <tr>
                         <th scope="col">Room ID</th>
                         <th scope="col">Room Name</th>
-                        <th scope="col">Room Type</th>
-                        <th scope="col">Room Location</th>
                         <th scope="col">Room Status</th>
                         <th scope="col">Room Booking</th>
                         <th scope="col">Book Room</th>
@@ -133,10 +131,8 @@
                 </thead>
                 <tbody>
                     <tr v-for="room in rooms">
-                        <th scope="row">{{room.room_id}}</th>
-                        <td>{{room.room_name}}</td>
-                        <td>{{room.room_type}}</td>
-                        <td>{{room.room_location}}</td>
+                        <th scope="row">{{room.roomId}}</th>
+                        <td>{{room.roomId}}</td>
                         <td>{{room.room_status}}</td>
                         <td>{{room.room_booking}}</td>
                         <td><button class="submit-btn btn-primary" @click="bookRoom()">Book Room</button>
@@ -158,13 +154,31 @@ export default {
             roomtype: '',
             date: '',
             starttime: '',
-            duration: '',
+            endtime: '',
             rooms: [],
             displayRooms: false,
-            get_rooms : "http://localhost:8080/rooms"
+            get_rooms : "http://localhost:5004/accessAvailableBooking",
+            get_all_rooms: "http://localhost:8080/rooms"
         }
     },
     methods: {
+        getAllRooms(){
+            fetch(this.get_all_rooms)
+            .then(response => response.json()) // Parse response body as JSON
+            .then(response => {
+                allRooms = response;
+                console.log(allRooms);
+                const roomIds = [];
+                
+                for (let i = 0; i < data.data.length; i++) {
+                    roomIds.push(data.data[i].roomId);
+                }
+            })
+            .catch(err => {
+                console.log(`Error getting documents`, err);
+            });
+        },
+        
         findRooms() {
             this.displayRooms = true;
             console.log(this.roomlocation);
@@ -172,24 +186,34 @@ export default {
             console.log(this.date);
             console.log(this.starttime);
             console.log(this.duration);
-            //fetch rooms 
-            // fetch(`${get_rooms}?location=${this.roomlocation}&type=${this.roomtype}&date=${this.date}&starttime=${this.starttime}&duration=${this.duration}}`,
+            var roomlocarray = [];
+            var roomtypearray = [];
+            roomtypearray.push(this.roomtype);
+            roomlocarray.push(this.roomlocation);
+            var bodydata = {
+                "roomType": roomtypearray,
+                "location": roomlocarray
+            }
+            // console.log(bodydata);
             fetch(this.get_rooms, {
-                method: 'GET',
-                body: {}
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "roomType": roomtypearray,
+                    "location": roomlocarray
+                })
             })
-            .then(response => response.json())
+            .then(response => response.json()) // Parse response body as JSON
             .then(data => {
-                this.rooms = data;
-                console.log(this.rooms);
-                
-            })
-            .catch(error => {
-                // Errors when calling the service; such as network error, 
-                // service offline, etc
-                console.log(this.message + error);
-                
-            });
+                console.log(data)
+                this.rooms = data.data.data
+                for (var i = 0; i < this.rooms.length; i++) {
+                    console.log(this.rooms[i])
+                }
+            }) // Do something with the data
+            .catch(error => console.error(error));
         },
         bookRoom() {
             console.log("book room");
