@@ -13,20 +13,20 @@
                 <div class="form-group">
                     <span class="form-label">Room Location</span>
                     <select class="form-control" id="location" v-model="roomlocation" required>
-                        <option value="soa">SOA</option>
-                        <option value="sob">SOB</option>
-                        <option value="scis">SCIS</option>
-                        <option value="soe">SOE</option>
-                        <option value="soss">SOSS</option>
+                        <option value="School of Accountancy">SOA</option>
+                        <option value="School of Business">SOB</option>
+                        <option value="School of Computing and Information Systems">SCIS</option>
+                        <option value="School of Economics">SOE</option>
+                        <option value="School of Social Sciences">SOSS</option>
                     </select>
                     <span class="select-arrow"></span>
                 </div>
                 <div class="form-group">
                     <span class="form-label">Room Type</span>
                     <select class="form-control" id="roomtype" v-model="roomtype" required>
-                        <option value="seminar">Seminar Room</option>
+                        <option value="Seminar Room">Seminar Room</option>
                         <option value="Group Study Room">Group Study Room</option>
-                        <option value="classroom">Classroom</option>
+                        <option value="Classroom">Classroom</option>
                     </select>
                     <span class="select-arrow"></span>
                 </div>
@@ -74,11 +74,37 @@
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group">
-                            <span class="form-label">Duration</span>
-                            <select class="form-control" id="duration" v-model="duration" required>
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
+                            <span class="form-label">End Time</span>
+                            <select name="time" id="time" class="form-control" v-model="starttime">
+                                <option value="0800">0800</option>
+                                <option value="0830">0830</option>
+                                <option value="0900">0900</option>
+                                <option value="0930">0930</option>
+                                <option value="1000">1000</option>
+                                <option value="1030">1030</option>
+                                <option value="1100">1100</option>
+                                <option value="1130">1130</option>
+                                <option value="1200">1200</option>
+                                <option value="1230">1230</option>
+                                <option value="1300">1300</option>
+                                <option value="1330">1330</option>
+                                <option value="1400">1400</option>
+                                <option value="1430">1430</option>
+                                <option value="1500">1500</option>
+                                <option value="1530">1530</option>
+                                <option value="1600">1600</option>
+                                <option value="1630">1630</option>
+                                <option value="1700">1700</option>
+                                <option value="1730">1730</option>
+                                <option value="1800">1800</option>
+                                <option value="1830">1830</option>
+                                <option value="1900">1900</option>
+                                <option value="1930">1930</option>
+                                <option value="2000">2000</option>
+                                <option value="2030">2030</option>
+                                <option value="2100">2100</option>
+                                <option value="2130">2130</option>
+                                <option value="2200">2200</option>
                             </select>
                             <span class="select-arrow"></span>
                         </div>
@@ -148,7 +174,10 @@ export default {
             console.log(this.duration);
             //fetch rooms 
             // fetch(`${get_rooms}?location=${this.roomlocation}&type=${this.roomtype}&date=${this.date}&starttime=${this.starttime}&duration=${this.duration}}`,
-            fetch(this.get_rooms)
+            fetch(this.get_rooms, {
+                method: 'GET',
+                body: {}
+            })
             .then(response => response.json())
             .then(data => {
                 this.rooms = data;
