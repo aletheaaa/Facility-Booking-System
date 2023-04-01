@@ -6,8 +6,8 @@ from os import environ
 from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-# app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs"
+# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -141,7 +141,6 @@ def find_booking():
     data = request.get_json()
     if type(data) == str:
         data = json.loads(data)
-    print("bookinglog/getTaken isk called")
     if (data == None or len(data["roomID"]) == 0):
         return jsonify({
             "code": 400,
@@ -246,14 +245,14 @@ def delete_booking():
     data = request.get_json()
     
     # checking if the relevant fields are filled
-    if ((data["startTime"] == None) or (data["endTime"] == None) or (data["roomID"] == None)):
+    if (data['bookingID'] == None):
         return jsonify({
             "code": 400,
-            "message": "Provide all the fields: startTime, endTime, roomID."
+            "message": "Please provide the bookingID."
         })
     
     # filter by roomID & timeslot
-    bookinglog = BookingLog.query.filter_by(roomID=data["roomID"], startTime=data["startTime"], endTime=data["endTime"]).first()
+    bookinglog = BookingLog.query.filter_by(bookingID=data['bookingID']).first()
     if bookinglog:
         db.session.delete(bookinglog)
         db.session.commit()
