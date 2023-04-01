@@ -11,7 +11,13 @@ services:
     networks:
       - my-network
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics ping -q"]
+      interval: 10s
+      retries: 5
+
   rabbitmq:
     image: rabbitmq:3-management
     hostname: esd-rabbit
@@ -21,3 +27,7 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      retries: 5

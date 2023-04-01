@@ -7,62 +7,150 @@ const routingKey = 'email.notifications'; // the routing key to use when publish
 var subject_title = 'confirmation';
 
 //bookerID, coBookerID, bookerAddress, coBookerAddress,roomName, cost, bookingID, date, time, type
+//ESDFBSproj is the mail name
+function toSend(details,subject,mailnames,message){ //function to send emails in a round robin fashion due to domains having spam protection after sending multiple mails
+  const mailAccounts = [
+    {
+      service: 'hotmail',
+      auth: {
+        email: 'ESDFBSproj@outlook.com',
+        password: 'ESD1235-6789FBS',
+    }},
+    {
+      service: 'protonmail',
+      auth: {
+        email: 'ESDFBSproj@proton.me',
+        password: 'ESD1235-6789FBS',
+    }},
+    {
+      service: 'tutanota',
+      auth: {
+        email: 'ESDFBSproj@tutanota.com',
+        password: 'ESD1235-6789FBS',
+    }},
+  ];
+  
+  // Index of the current mail account to use
+  let currentIndex = 0;
+  
+  // Define the nodemailer transporter outside of the sendMail function
+  const transporter = nodemailer.createTransport({
+    service: mailAccounts[currentIndex].service,
+    auth: {
+      user: mailAccounts[currentIndex].auth.email,
+      pass: mailAccounts[currentIndex].auth.password,
+    },
+  });
+  
+  // Define a function to try sending the email with a different mail account
+  function tryNextMailAccount(error, info, mailOptions) {
+    if (error) {
+      console.log(`Failed to send email with ${mailAccounts[currentIndex].auth.email}: ${error.message}`);
+      currentIndex = (currentIndex + 1) % mailAccounts.length;
+      console.log(`Trying next mail account: ${mailAccounts[currentIndex].auth.email}`);
+      transporter.options.service = mailAccounts[currentIndex].service;
+      transporter.options.auth.user = mailAccounts[currentIndex].auth.email;
+      transporter.options.auth.pass = mailAccounts[currentIndex].auth.password;
+      transporter.sendMail(mailOptions, (err, info) => tryNextMailAccount(err, info, mailOptions));
+    } else {
+      console.log(`Email sent with ${mailAccounts[currentIndex].auth.email}: ${info.response}`);
+      console.log(`Recipients: ${mailnames}`);
+      console.log(`Message content: ${message}`);
+    }
+  }
+  
+  const mailOptions = {
+    from: 'ESDFBSproj@outlook.com',
+    to: mailnames,
+    subject: `Facility booking for ID:${details.bookingID} ${subject}`,
+    text: message,
+  };
+  
+  transporter.sendMail(mailOptions, (error, info) => tryNextMailAccount(error, info, mailOptions));
+} 
 
 function mailer(details) {
-    //const link = "fbs.com/?accountID="
+    var mailnames = [];
+    var message = ``
+    //check if there is a cobooker
+    if (details.coBookerAddress.length > 0){
+      mailnames = details.coBookerAddress.concat(details.bookerAddress)
+    }
+    else{
+      mailnames = details.bookerAddress
+    }
 
     //if it is a cancellation
     if (details.type == "cancel"){
       subject_title = "cancellation"
-      var message = `This is to confirm the cancellation of your booking on ${details.date} for ${details.roomName} at ${details.time}. 
-Please wait while the credits are being refunded` 
+      var message = `This is to inform that there is cancellation of a booking on ${details.date} for ${details.roomName} at ${details.time}. 
+Any credits deducted for the booking will be refunded shortly` 
+      toSend(details,subject_title,mailnames,message)
     }
+
+    //if it is to update cobooker status
+    else if(details.type == "update"){
+        mailnames = details.bookerAddress
+        subject_title = `[Acceptance] Facility booking for ID:${details.bookingID}`
+        message = `This is to inform you that ${details.coBookerAddress} has accepted the request for:
+
+BookingID: ${details.bookingID}
+Date: ${details.date} 
+Roomname: ${details.roomName}
+Date: ${details.time}
+
+This link provides the booking information:
+fbs.com`
+
+        //send to original booker
+        toSend(details,subject_title,mailnames,message)
+        
+        // set variables for cooboker confirmation
+        mailnames = details.coBookerAddress
+        subject_title = "(cobooker update)"
+        message = `This is to inform you that you have accepted a booking (${details.bookingID})
+
+BookingID: ${details.bookingID}
+Date: ${details.date} 
+Roomname: ${details.roomName}
+Date: ${details.time}
+
+This link provides the booking information:
+fbs.com`
+
+        toSend(details,subject_title,mailnames,message)
+    }
+        
 
     //for confirmation
     else{
-      var cobooker_text = ``
 
-      if (details.coBookerID != null) {
-        cobooker_text = `Additionally, as you have indicated a cobooker when booking, please note credits are only deducted evenly after cobooker accepts the request
-`
-    };
+      //if cobooker indicated
+      if (details.coBookerAddress.length > 0) {
+        mailnames = details.coBookerAddress
+        subject_title = `[CoBooker request] for bookingID ${details.bookingID}`
+        message = `This is to inform you that ${details.bookerAddress} has indicated you as a cobooker for:
 
+Booking details:
+BookingID: ${details.bookingID}
+Date: ${details.date} 
+Roomname: ${details.roomName}
+Date: ${details.time}
+
+Please use this link to accept the booking:
+fbs.com`
+
+        toSend(details,subject_title,mailnames,message)
+      }
+      //mail to primary booker
+      subject_title = `Confirmation for bookingID: ${details.bookingID}`
       var message = `This is to inform you that your booking on ${details.date} for ${details.roomName} at ${details.time} has been approved.
-
-${cobooker_text}
 
 Please use this link to see the booking information:
 fbs.com`
-    }
 
-    //nodemailer transporter
-    var transporter = nodemailer.createTransport({
-        service: 'hotmail',
-        auth: {
-          user: 'ESDFBSproj@outlook.com',
-          pass: 'ESD1235-6789FBS'
-        }
-      });
-    var mailnames = [
-        details.bookerAddress,
-        details.coBookerAddress
-    ]
-      
-    var mailOptions = {
-    from: "ESDFBSproj@outlook.com",
-    to: mailnames,
-    subject: `Facility booking for ID:${details.bookingID} ${subject_title}`,
-    text: message
-    };
-    
-    transporter.sendMail(mailOptions, function(error, info){
-    if (error) {
-        console.log(error);
-    } else {
-        console.log('Email sent: ' + info.response);
-        console.log('Message content: '+ message)
+        toSend(details,subject_title,mailnames,message)
     }
-    });
 }
 
 async function listen() {
@@ -77,15 +165,16 @@ async function listen() {
 
     channel.consume(queueName, (message) => {
         if (message !== null) {
+          console.log(message)
           const content = message.content.toString();
-          try {
+          // try {
             const jsonMessage = JSON.parse(content);
             console.log(jsonMessage)
             //console.log(`Received message: ${jsonMessage}`);
             mailer(jsonMessage)
-          } catch (error) {
-            console.error(`Error: received non-JSON message: ${content}`);
-          }
+          // } catch (error) {
+          //   console.error(`Error: received non-JSON message: ${content}`);
+          // }
           channel.ack(message);
         }
       });
