@@ -14,7 +14,7 @@ room_URL = "http://host.docker.internal:8080/rooms"
 # bookingLogs_URL = "http://localhost:5001/bookinglog"
 bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
 
-@app.route("/accessAvailableBooking", methods=['GET'])
+@app.route("/accessAvailableBooking", methods=['POST'])
 def access_available_booking():
     if request.is_json:
         try:
