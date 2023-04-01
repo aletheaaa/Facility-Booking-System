@@ -24,12 +24,32 @@ class accounts(db.Model):
         
 
     def json(self):
-        return {"accountID": self.accountID, "email": self.email, "price": self.price, "balance": self.balance}
+        return {"accountID": self.accountID, "email": self.email, "balance": self.balance}
+
+# get all accounts
+@app.route("/payment/getAllAccounts", methods=["GET"])
+def get_all():
+    account_list = accounts.query.all()
+    if len(account_list):
+        return jsonify(
+            {
+                "code": 200,
+                "data": {
+                    "accounts": [account.json() for account in account_list]
+                }
+            }
+        )
+    return jsonify(
+        {
+            "code": 404,
+            "message": "There are no accounts."
+        }
+    ), 404
 
 # get the credits of the account
 @app.route('/payment/<int:accountID>', methods=['GET'])
 def getPaymentAccount(accountID):
-    account = accounts.query.get(accountID)
+    account = accounts.query.filter_by(accountID=accountID).first()
     message = "Account with ID " + str(accountID) + " does not exist" 
 
     if account is None:
@@ -48,7 +68,7 @@ def getPaymentAccount(accountID):
 
 
 # deduct credits
-@app.route('/payment/deduct', methods=['POST'])
+@app.route('/payment/deduct', methods=['PUT'])
 def deduct():
     print("deducting credits")
     data = request.get_json()
@@ -60,7 +80,7 @@ def deduct():
     accountsWithInsufficientFunds = []
     validAccounts = []
     for accountID in account_ids:
-        account = accounts.query.get(accountID)
+        account = accounts.query.filter_by(accountID=accountID).first()
         if account is None:
             accountsNotFound.append(accountID)
             continue
@@ -87,7 +107,7 @@ def deduct():
     elif len(validAccounts) != len(account_ids):
         costByInvalidAccounts = (len(account_ids) - len(validAccounts)) * amount
     for accountID in validAccounts:
-        account = accounts.query.get(accountID)
+        account = accounts.query.filter_by(accountID=accountID).first()
         if accountID == originalBookerID:
             account.balance -= (amount + costByInvalidAccounts)
         else:
@@ -108,7 +128,7 @@ def deduct():
         ), 200
 
 # add credits
-@app.route('/payment/add', methods=['POST'])
+@app.route('/payment/add', methods=['PUT'])
 def refund():
     data = request.get_json()
     account_ids = data['accountID']
@@ -117,7 +137,7 @@ def refund():
     accountsNotFound = []
     accountsFound = []
     for accountID in account_ids:
-        account = accounts.query.get(accountID)
+        account = accounts.query.filter_by(accountID=accountID).first()
         if account is None:
             accountsNotFound.append(accountID)
             continue
