@@ -35,7 +35,7 @@
 
 <script>
 export default {
-    name: 'BookRoom',
+    name: 'Account',
     data() {
         return {
 

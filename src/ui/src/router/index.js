@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import BookRoom from '../views/BookRoom.vue'
 import Login from '../views/Login.vue'
 import Main from '../views/Main.vue'
+import Account from '../views/Account.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,6 +34,11 @@ const router = createRouter({
       path: '/book',
       name: 'BookRoom',
       component: BookRoom
+    },
+    {
+      path: '/account',
+      name: 'Account',
+      component: Account
     }
     
   ]
