@@ -6,7 +6,7 @@
     </nav> -->
     <div class="booking-cta">
         <h1 class="display-1 text-light font-weight-bold">SMU <br>Facilities Booking System</h1>
-        <!-- <button class="btn btn-lg btn-danger" @click="getAllRooms()"> TEST ME </button> -->
+        <button class="btn btn-lg btn-danger" @click="getAllRooms()"> TEST ME </button>
     </div>
     <div id="app">
         <div id="booking" class="container" v-show="!displayRooms">
@@ -134,7 +134,7 @@
                         <th scope="row">{{room.roomId}}</th>
                         <td>{{room.roomName}}</td>
                         <td>{{room.roomType}}</td>
-                        <td><button class="submit-btn btn-primary" @click="bookRoom()">Book Room</button>
+                        <td><button class="submit-btn btn-primary" @click="bookRoom(room.roomId)">Book Room</button>
                         </td>
                     </tr>
                 </tbody>
@@ -144,7 +144,7 @@
 </template>
 
 <script>
-// import { signout } from '../utils'
+import router from '../router'
 export default {
     name: 'Main',
     data() {
@@ -211,8 +211,15 @@ export default {
             }) // Do something with the data
             .catch(error => console.error(error));
         },
-        bookRoom() {
+        bookRoom(roomId) {
             console.log("book room");
+            console.log(roomId);
+            console.log(this.rooms[roomId]);
+            router.push({ 
+                path: '/book', 
+                query: { bookingInfo: JSON.stringify(this.rooms[roomId]) } 
+            })
+            
         }
         
     },

@@ -33,21 +33,21 @@
             </form>
         </div>
     </div>
-        
-    </template>
     
-    <script>
-    import { login } from '../utils'
-    export default {
-        name: 'Login',
-        data() {
-            return {
-                email: '',
-                password: '',
-            }
-        },
-        methods: {
-            login
-        },
-    }
+</template>
+
+<script>
+import { login } from '../utils'
+export default {
+    name: 'Login',
+    data() {
+        return {
+            email: '',
+            password: '',
+        }
+    },
+    methods: {
+        login
+    },
+}
 </script>

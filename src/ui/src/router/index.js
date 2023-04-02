@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-// import HomeView from '../views/HomeView.vue'
+import BookRoom from '../views/BookRoom.vue'
 import Login from '../views/Login.vue'
 import Main from '../views/Main.vue'
 
@@ -29,11 +29,11 @@ const router = createRouter({
       name: 'Main',
       component: Main
     },
-    // {
-    //   path: '/book',
-    //   name: 'BookRoom',
-    //   component: BookRoom
-    // }
+    {
+      path: '/book',
+      name: 'BookRoom',
+      component: BookRoom
+    }
     
   ]
 })
