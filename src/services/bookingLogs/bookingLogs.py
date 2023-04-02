@@ -72,7 +72,7 @@ def get_all():
                     "bookinglogs": [bookinglog.json() for bookinglog in bookingloglist]
                 }
             }
-        )
+        ), 200
     return jsonify(
         {
             "code": 404,
@@ -90,7 +90,7 @@ def find_by_bookingID(bookingID):
                 "code": 200,
                 "data": bookinglog.json()
             }
-        )
+        ), 200
     return jsonify(
         {
             "code": 404,
@@ -110,7 +110,7 @@ def find_by_accountID(accountID):
                     "bookinglogs": [bookinglog.json() for bookinglog in bookingloglist]
                 }
             }
-        )   
+        ), 200
     return jsonify(
         {
             "code": 404,
@@ -131,7 +131,7 @@ def find_by_coBooker(accountID):
                     "bookinglogs": [bookinglog.json() for bookinglog in bookingloglist]
                 }
             }
-        )
+        ), 200
     return jsonify(
         {
             "code": 404,
@@ -145,29 +145,30 @@ def find_booking():
     data = request.get_json()
     if type(data) == str:
         data = json.loads(data)
-    if (data == None or len(data["roomID"]) == 0):
+    if (len(data["roomID"]) == 0):
         return jsonify({
             "code": 400,
             "message": "Provide a roomID."
-        })
+        }), 400
 
     final = []
     # fillter the bookinglogs by date
     date_list = data['dateChosen'].split("-")
     bookingDate = date(int(date_list[0]), int(date_list[1]), int(date_list[2]))
     bookinglog = BookingLog.query.filter(func.date(BookingLog.startTime) == bookingDate).all()
-    # roomIDs are rooms that fit user specifications: location & roomType
-    for i in data["roomID"]:
-        bookinglog = list(filter(lambda x: x.roomID == i, bookinglog))
-        print(bookinglog)
-        final.extend(bookinglog)
-    if len(final) != 0:
-        return jsonify(
-            {
-                "code": 200,
-                "data": [bookinglog.json() for bookinglog in final]
-            }
-        )
+    if len(bookinglog) != 0:
+        # roomIDs are rooms that fit user specifications: location & roomType
+        for i in data["roomID"]:
+            bookinglog = list(filter(lambda x: x.roomID == i, bookinglog))
+            print(bookinglog)
+            final.extend(bookinglog)
+        if len(final) != 0:
+            return jsonify(
+                {
+                    "code": 200,
+                    "data": [bookinglog.json() for bookinglog in final]
+                }
+            ), 200
     return jsonify(
         {
             "code": 404,
@@ -180,11 +181,12 @@ def find_booking():
 def create_booking():
     # checking if all the fields are filled by the user
     data = request.get_json()
-    if ((data["accountID"] == None) or (data["startTime"] == None) or (data["endTime"] == None) or (data["price"] == None) or (data["roomID"] == None)):
+    list_of_fields_needed = ["accountID", "startTime", "endTime", "price", "roomID", "coBooker"]
+    if (not all(field in data for field in list_of_fields_needed)):
         return jsonify({
             "code": 400,
             "message": "Provide all the fields."
-        })
+        }), 400
     
     dataWithoutCoBooker = data.copy()
     dataWithoutCoBooker.pop("coBooker", None)
@@ -193,13 +195,10 @@ def create_booking():
     bookinglog = BookingLog(**dataWithoutCoBooker)
 
     # checking if coBooker field was filled
-    try:
-        data["coBooker"]
+    if (len(data["coBooker"]) != 0):
         for i in range(len(data["coBooker"])):
             bookinglog.coBooker.append(CoBooker(
                 accountID=data["coBooker"][i], acceptStatus="False"))
-    except:
-        None
 
     try:
         db.session.add(bookinglog)
@@ -225,26 +224,36 @@ def create_booking():
 @app.route("/bookinglog/coBookerAccept", methods=['PUT'])
 def update_booking():
     data = request.get_json()
-    if data["accountID"] == None or data["bookingID"] == None:
+    fields_needed = ["accountID", "bookingID"]
+    if (not all(field in data for field in fields_needed)):
         return jsonify({
             "code": 400,
             "message": "Provide all the fields."
-        })
+        }), 400
     coBooker = CoBooker.query.filter_by(accountID=data["accountID"], bookingID=data["bookingID"]).first()
     if coBooker:
         if coBooker.acceptStatus == "True":
             return jsonify({
                 "code": 400,
                 "message": "You have already accepted this booking."
-            })
+            }), 400
         coBooker.acceptStatus = "True"
-        db.session.commit()
-        return jsonify(
-            {
-                "code": 200,
-                "data": coBooker.json()
-            }
-        ), 200
+
+        try:
+            db.session.commit()
+            return jsonify(
+                {
+                    "code": 200,
+                    "data": coBooker.json()
+                }
+            ), 200
+        except:
+            return jsonify(
+                {
+                    "code": 500,
+                    "message": "An error occurred updating the coBooker."
+                }
+            ), 500
     return jsonify(
         {
             "code": 404,
@@ -259,25 +268,36 @@ def delete_booking():
     data = request.get_json()
     
     # checking if the relevant fields are filled
-    if (data['bookingID'] == None):
+    if ('bookingID' not in data):
         return jsonify({
             "code": 400,
             "message": "Please provide the bookingID."
-        })
+        }), 400
     
     # filter by roomID & timeslot
     bookinglog = BookingLog.query.filter_by(bookingID=data['bookingID']).first()
     if bookinglog:
-        db.session.delete(bookinglog)
-        db.session.commit()
-        return jsonify(
-            {
-                "code": 200,
-                "data": {
-                    "booking": bookinglog.json()
+        try:
+            db.session.delete(bookinglog)
+            db.session.commit()
+            return jsonify(
+                {
+                    "code": 200,
+                    "data": {
+                        "booking": bookinglog.json()
+                    }
                 }
-            }
-        ), 200
+            ), 200
+        except:
+            return jsonify(
+                {
+                    "code": 500,
+                    "data": {
+                        "booking": bookinglog.json()
+                    },
+                    "message": "An error occurred deleting the booking."
+                }
+            ), 500
     return jsonify(
         {
             "code": 404,
