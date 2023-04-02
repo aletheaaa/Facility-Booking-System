@@ -6,6 +6,7 @@
     </nav> -->
     <div class="booking-cta">
         <h1 class="display-1 text-light font-weight-bold">SMU <br>Facilities Booking System</h1>
+        <!-- <button class="btn btn-lg btn-danger" @click="getAllRooms()"> TEST ME </button> -->
     </div>
     <div id="app">
         <div id="booking" class="container" v-show="!displayRooms">
@@ -119,22 +120,20 @@
         </div>
         
         <div id="rooms" class="section" v-show="displayRooms">
-            <table class="table table-striped" v-if="rooms">
+            <table class="table table-hover table-light" v-if="rooms">
                 <thead>
                     <tr>
                         <th scope="col">Room ID</th>
                         <th scope="col">Room Name</th>
                         <th scope="col">Room Status</th>
-                        <th scope="col">Room Booking</th>
                         <th scope="col">Book Room</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="room in rooms">
                         <th scope="row">{{room.roomId}}</th>
-                        <td>{{room.roomId}}</td>
-                        <td>{{room.room_status}}</td>
-                        <td>{{room.room_booking}}</td>
+                        <td>{{room.roomName}}</td>
+                        <td>{{room.roomType}}</td>
                         <td><button class="submit-btn btn-primary" @click="bookRoom()">Book Room</button>
                         </td>
                     </tr>
@@ -145,7 +144,7 @@
 </template>
 
 <script>
-import { signout } from '../utils'
+// import { signout } from '../utils'
 export default {
     name: 'Main',
     data() {
@@ -157,22 +156,22 @@ export default {
             endtime: '',
             rooms: [],
             displayRooms: false,
-            get_rooms : "http://localhost:5004/accessAvailableBooking",
+            get_rooms : "http://localhost:5004/accessTakenBooking",
             get_all_rooms: "http://localhost:8080/rooms"
         }
     },
     methods: {
         getAllRooms(){
+            // This function will get all the rooms from the database, as a list of roomIds
+            this.displayRooms = true;
+            console.log("Getting all rooms");
             fetch(this.get_all_rooms)
             .then(response => response.json()) // Parse response body as JSON
             .then(response => {
-                allRooms = response;
-                console.log(allRooms);
-                const roomIds = [];
-                
-                for (let i = 0; i < data.data.length; i++) {
-                    roomIds.push(data.data[i].roomId);
-                }
+                var allRooms = response;
+                console.log(allRooms.data)
+                this.rooms = allRooms.data;
+                return allRooms;
             })
             .catch(err => {
                 console.log(`Error getting documents`, err);
@@ -180,6 +179,7 @@ export default {
         },
         
         findRooms() {
+            // This function will get all the rooms from the database based on user specification, store it in this.rooms
             this.displayRooms = true;
             console.log(this.roomlocation);
             console.log(this.roomtype);
@@ -190,35 +190,30 @@ export default {
             var roomtypearray = [];
             roomtypearray.push(this.roomtype);
             roomlocarray.push(this.roomlocation);
+            // this.rooms = this.getAllRooms();
+            this.getAllRooms();
             var bodydata = {
                 "roomType": roomtypearray,
-                "location": roomlocarray
+                "location": roomlocarray,
+                "dateChosen": toString(this.date),
             }
-            // console.log(bodydata);
+            console.log(bodydata);
             fetch(this.get_rooms, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    "roomType": roomtypearray,
-                    "location": roomlocarray
-                })
+                body: JSON.stringify(bodydata)
             })
             .then(response => response.json()) // Parse response body as JSON
             .then(data => {
                 console.log(data)
-                this.rooms = data.data.data
-                for (var i = 0; i < this.rooms.length; i++) {
-                    console.log(this.rooms[i])
-                }
             }) // Do something with the data
             .catch(error => console.error(error));
         },
         bookRoom() {
             console.log("book room");
-        },
-        signout
+        }
         
     },
 }
