@@ -1,3 +1,4 @@
+import json
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from os import environ
@@ -133,7 +134,18 @@ def deduct():
             account.balance -= (amount + costByInvalidAccounts)
         else:
             account.balance -= amount
-        db.session.commit()
+        
+        try:
+            db.session.commit()
+        except:
+            return jsonify({
+                    "code": 500,
+                    "data": {
+                        "data": data
+                    },
+                    "message": "Error deducting credits from accounts."
+                }
+            ), 500
 
     return jsonify(
             {
@@ -152,6 +164,8 @@ def deduct():
 @app.route('/payment/add', methods=['PUT'])
 def refund():
     data = request.get_json()
+    if type(data) == str:
+        data = json.loads(data)
     account_ids = data['accountID']
     amount = data['amount']
 
@@ -164,7 +178,17 @@ def refund():
             continue
         accountsFound.append(accountID)
         account.balance += amount
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            return jsonify({
+                    "code": 500,
+                    "data": {
+                        "data": data
+                    },
+                    "message": "Error adding credits to accounts."
+                }
+            ), 500
 
     successMessage = "Successfully refunded " + str(amount) + " credits to the accounts."
     return jsonify(
