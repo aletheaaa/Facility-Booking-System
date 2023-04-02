@@ -22,6 +22,9 @@ public interface RoomService {
     // reading specific rooms by location
     List<Room> fetchRoomByRoomTypeAndLocation(List<String> roomType, List<String> location);
 
+    // reading room from roomId
+    Room getRoomByRoomId(Integer roomId);
+    
     // update
     Room updateRoom(Room room, Integer roomId);
 

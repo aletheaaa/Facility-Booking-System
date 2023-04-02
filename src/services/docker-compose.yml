@@ -65,19 +65,19 @@ services:
   #################################
   # Payment: The Payment microservice
   #################################
-  # payment:
-  #   build: 
-  #     context: ./payment
-  #     dockerfile: Dockerfile
-  #   image: aletheatohh/payment:1.0
-  #   restart: always
-  #   networks:
-  #     - update-booking-network
-  #     - make-bookings-network
-  #   environment:
-  #     dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/accounts
-  #   ports:
-  #     - "5002:5002"
+  payment:
+    build: 
+      context: ./payment
+      dockerfile: Dockerfile
+    image: aletheatohh/payment:1.0
+    restart: always
+    networks:
+      - update-booking-network
+      - make-bookings-network
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/accounts
+    ports:
+      - "5002:5002"
   
   #################################
   # Room: The Room microservice
@@ -116,30 +116,30 @@ services:
   ################################
   # updateBooking: The updateBooking microservice
   ################################
-  # updatebooking:
-  #   image: aletheatohh/updatebooking:1.0
-  #   restart: always
-  #   build:
-  #     context: ./updateBooking
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "5003:5003"
-  #   networks:
-  #     - update-booking-network
-  #   depends_on:
-  #     - payment
-  #     - bookinglogs
-  #     # - notif
-
-  #################################
-  # accessavailablebooking: The accessavailablebooking microservice
-  #################################
-  accessavailablebooking:
-    image: aletheatohh/accessavailablebooking:1.0
+  updatebooking:
+    image: aletheatohh/updatebooking:1.0
     restart: always
     build:
-      context: ./accessAvailableBooking
+      context: ./updateBooking
+      dockerfile: Dockerfile
+    # restart: always
+    ports:
+      - "5003:5003"
+    networks:
+      - update-booking-network
+    depends_on:
+      - payment
+      - bookinglogs
+      # - notif
+
+  #################################
+  # accesstakenbooking: The accesstakenbooking microservice
+  #################################
+  accesstakenbooking:
+    image: aletheatohh/accesstakenbooking:1.0
+    restart: always
+    build:
+      context: ./accessTakenBooking
       dockerfile: Dockerfile
     ports:
       - "5004:5004"

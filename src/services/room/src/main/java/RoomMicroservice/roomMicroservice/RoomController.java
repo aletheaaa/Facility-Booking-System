@@ -45,6 +45,7 @@ public class RoomController {
     }
 
     // Read operation
+    @CrossOrigin
     @GetMapping("/rooms")
     public JSONObject fetchRoomList()
     {
@@ -72,6 +73,18 @@ public class RoomController {
         return successJsonObject;
     }
 
+    // get room based on roomID
+    @GetMapping("/rooms/{id}")
+    public JSONObject
+    getRoomByRoomId(@PathVariable("id") Integer roomId )
+    {
+        JSONObject successJsonObject = new JSONObject();
+        successJsonObject.put("code", 200);
+        successJsonObject.put("data", roomService.getRoomByRoomId(roomId));
+        successJsonObject.put("message", "Successfully retrieved the rooms");
+        return successJsonObject;
+    }
+    
     // Update operation
     @PutMapping("/rooms/{id}")
     public JSONObject
