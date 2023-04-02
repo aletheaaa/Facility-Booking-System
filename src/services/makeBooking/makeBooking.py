@@ -27,28 +27,35 @@ def makeBooking():
     if request.is_json:
         try:
             booking = request.get_json()
-            payment_json, bookingLog_json, notification_json = convert_json(booking)            
+            payment_json, bookingLog_json = convert_json(booking)            
             
+            #Call the bookinglog service
             booking_logs_response = invoke_http(booking_logs_url, method='POST', json=bookingLog_json)
-            # Check if the booking logs microservice was successful
-            
 
             # Call the payment microservice
-            payment_response = invoke_http(payment_url, method='POST', json=payment_json)
+            payment_response = invoke_http(payment_url, method='PUT', json=payment_json)
 
-            print("This is the content:",booking_logs_response)
-
-
+            #if both succeed, call notification microservice
             if (booking_logs_response["code"] == 201 and payment_response["code"] == 200):
-                brokerResult = rabbitmq(notification_json)
+                brokerResult = rabbitmq(booking)
                 return jsonify({
                 "code":200,
                 "data": {"bookingLogs":booking_logs_response,"payment":payment_response,"messageBroker":brokerResult},
             })
-            return jsonify({
-                "code":500,
-                "data": {"bookingLogs":booking_logs_response,"payment":payment_response},
-                "message":"unsuccessful"
+            #Otherwise, print the error
+            else:
+                if booking_logs_response["code"] != 201 and payment_response["code"] != 200:
+                    error_message = "Booking logs and Payment service failed"
+                elif booking_logs_response["code"] != 201:
+                    error_message = "Booking Logs microservice failed"
+                elif payment_response["code"] != 200:
+                    error_message = "Payment microservice failed"
+                else:
+                    error_message = "Unknown error"
+                return jsonify({
+                    "code":500,
+                    "data": {"bookingLogs":booking_logs_response,"payment":payment_response},
+                    "message":error_message
             })
         
         except Exception as e:
@@ -60,7 +67,7 @@ def makeBooking():
 
             return jsonify({
                 "code": 500,
-                "message": "update.py internal error: " + ex_str
+                "message": "makeBooking.py internal error: " + ex_str
             }), 500
 
     # if reached here, not a JSON request.
@@ -93,43 +100,43 @@ def rabbitmq(content):
 
     except Exception as e:
         print("Failed to send message to RabbitMQ: {}".format(str(e)))
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        ex_str = str(e) + " at " + str(exc_type) + ": " + fname + ": line " + str(exc_tb.tb_lineno)
+        print(ex_str)
         return {
             "code": 500,
-            "message": "Order creation failure sent for error handling."
+            "message": "RabbitMQ error: " + ex_str
         }
 
 def convert_json(data):
     accountID = data["accountID"]
-    bookingID = data["bookingID"]
-    bookerAddress = data["bookerAddress"]
-    coBookerAddress = data["coBookerAddress"]
-    bookerID = data["bookerID"]
-    coBookerID = data["coBookerID"]
-    type = data["type"]
+    # bookingID = data["bookingID"]
+    # bookerAddress = data["bookerAddress"]
+    # coBookerAddress = data["coBookerAddress"]
+    # type = data["type"]
     startTime = data["startTime"]
     endTime = data["endTime"]
-    roomName = data["roomName"]
-    date = data["date"]
+    # roomName = data["roomName"]
+    # date = data["date"]
     price = data["price"]
     roomID = data["roomID"]
     coBooker = data["coBooker"]
 
     #changing time from YYYY-MM-DD 04:00:00 to 1100 - 1200 in notification
-    starthour = startTime.split(" ")[1]
-    endhour = endTime.split(" ")[1]
-    time = starthour[:2] + "00 - " + endhour[:2] + "00"
+    # starthour = startTime.split(" ")[1]
+    # endhour = endTime.split(" ")[1]
+    # time = starthour[:2] + "00 - " + endhour[:2] + "00"
 
-    notification_json = { "bookerAddress": bookerAddress, 
-                    "coBookerAddress": coBookerAddress, 
-                    "bookerID": bookerID, 
-                    "coBookerID": coBookerID, 
-                    "type": type, 
-                    "bookingID": bookingID, 
-                    "time": time, 
-                    "roomName": roomName, 
-                    "date": date}
+    # notification_json = { "bookerAddress": bookerAddress, 
+    #                 "coBookerAddress": coBookerAddress, 
+    #                 "type": type, 
+    #                 "bookingID": bookingID, 
+    #                 "time": time, 
+    #                 "roomName": roomName, 
+    #                 "date": date}
 
-    payment_json = {'accountID': accountID, 
+    payment_json = {'accountID': [accountID], 
                "startTime": startTime,
                "endTime": endTime,
                "amount": price,
@@ -143,7 +150,7 @@ def convert_json(data):
                "roomID": roomID,
                 "coBooker": coBooker}
 
-    return payment_json, bookingLog_json, notification_json
+    return payment_json, bookingLog_json
 
 if __name__ == "__main__":
     print("This is flask " + os.path.basename(__file__) + " for make booking...")

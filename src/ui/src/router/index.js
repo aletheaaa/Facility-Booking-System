@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ViewBooking from '../views/ViewBooking.vue'
+import BookRoom from '../views/BookRoom.vue'
 import Login from '../views/Login.vue'
 import Main from '../views/Main.vue'
 
@@ -30,9 +30,9 @@ const router = createRouter({
       component: Main
     },
     {
-      path: '/viewBooking',
-      name: 'viewBooking',
-      component: ViewBooking
+      path: '/book',
+      name: 'BookRoom',
+      component: BookRoom
     }
     
   ]
