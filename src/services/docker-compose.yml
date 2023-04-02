@@ -122,7 +122,7 @@ services:
     build:
       context: ./updateBooking
       dockerfile: Dockerfile
-    restart: always
+    # restart: always
     ports:
       - "5003:5003"
     networks:
