@@ -5,9 +5,11 @@ const queueName = 'notification';
 const exchangeName = 'fbs';
 const routingKey = 'email.notifications'; // the routing key to use when publishing messages
 var subject_title = 'confirmation';
+//HOW TO RUN
+//Run the command line: "docker-compose up --build"
 
-//bookerAddress, coBookerAddress,roomName, cost, bookingID, startTime, endTime, type
-//ESDFBSproj is the mail name
+//json variables: bookerAddress, coBookerAddress,roomName, cost, bookingID, startTime, endTime, type
+//ESDFBSproj is the mail name to send emails
 function toSend(details,subject,mailnames,message){ //function to send emails in a round robin fashion due to domains having spam protection after sending multiple mails
   const mailAccounts = [
     {
