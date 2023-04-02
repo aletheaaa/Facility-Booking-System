@@ -6,7 +6,7 @@ const exchangeName = 'fbs';
 const routingKey = 'email.notifications'; // the routing key to use when publishing messages
 var subject_title = 'confirmation';
 
-//bookerID, coBookerID, bookerAddress, coBookerAddress,roomName, cost, bookingID, date, time, type
+//bookerAddress, coBookerAddress,roomName, cost, bookingID, startTime, endTime, type
 //ESDFBSproj is the mail name
 function toSend(details,subject,mailnames,message){ //function to send emails in a round robin fashion due to domains having spam protection after sending multiple mails
   const mailAccounts = [
@@ -72,6 +72,25 @@ function toSend(details,subject,mailnames,message){ //function to send emails in
 function mailer(details) {
     var mailnames = [];
     var message = ``
+
+    //to extract the date
+    const startDate = new Date(details.startTime);
+    const endDate = new Date(details.endTime);
+    
+    const formattedStartDate = `${startDate.getDate()}/${startDate.getMonth() + 1}/${startDate.getFullYear()}`;
+    const formattedEndDate = `${endDate.getDate()}/${endDate.getMonth() + 1}/${endDate.getFullYear()}`;
+    
+    const date = `${formattedStartDate} - ${formattedEndDate}`;
+
+    //to extract the time
+    const start = new Date(details.startTime);
+    const end = new Date(details.startTime);
+
+    const formattedStartTime = start.toLocaleTimeString([], {hour: 'numeric', minute: 'numeric', hour12: true});
+    const formattedEndTime = end.toLocaleTimeString([], {hour: 'numeric', minute: 'numeric', hour12: true});
+
+    const time = `${formattedStartTime} - ${formattedEndTime}`;
+
     //check if there is a cobooker
     if (details.coBookerAddress.length > 0){
       mailnames = details.coBookerAddress.concat(details.bookerAddress)
@@ -83,7 +102,7 @@ function mailer(details) {
     //if it is a cancellation
     if (details.type == "cancel"){
       subject_title = "cancellation"
-      var message = `This is to inform that there is cancellation of a booking on ${details.date} for ${details.roomName} at ${details.time}. 
+      var message = `This is to inform that there is cancellation of a booking on ${date} for ${details.roomName} at ${time}. 
 Any credits deducted for the booking will be refunded shortly` 
       toSend(details,subject_title,mailnames,message)
     }
@@ -95,9 +114,9 @@ Any credits deducted for the booking will be refunded shortly`
         message = `This is to inform you that ${details.coBookerAddress} has accepted the request for:
 
 BookingID: ${details.bookingID}
-Date: ${details.date} 
+Date: ${date} 
 Roomname: ${details.roomName}
-Date: ${details.time}
+Date: ${time}
 
 This link provides the booking information:
 fbs.com`
@@ -111,9 +130,9 @@ fbs.com`
         message = `This is to inform you that you have accepted a booking (${details.bookingID})
 
 BookingID: ${details.bookingID}
-Date: ${details.date} 
+Date: ${date} 
 Roomname: ${details.roomName}
-Date: ${details.time}
+Date: ${time}
 
 This link provides the booking information:
 fbs.com`
@@ -133,9 +152,9 @@ fbs.com`
 
 Booking details:
 BookingID: ${details.bookingID}
-Date: ${details.date} 
+Date: ${date} 
 Roomname: ${details.roomName}
-Date: ${details.time}
+Date: ${time}
 
 Please use this link to accept the booking:
 fbs.com`
@@ -144,12 +163,12 @@ fbs.com`
       }
       //mail to primary booker
       subject_title = `Confirmation for bookingID: ${details.bookingID}`
-      var message = `This is to inform you that your booking on ${details.date} for ${details.roomName} at ${details.time} has been approved.
+      var message = `This is to inform you that your booking on ${date} for ${details.roomName} at ${time} has been approved.
 
 Please use this link to see the booking information:
 fbs.com`
 
-        toSend(details,subject_title,mailnames,message)
+        toSend(details,subject_title,details.bookerAddress,message)
     }
 }
 
