@@ -81,7 +81,7 @@ def get_all():
     ), 404
 
 # get booking by bookingID
-@app.route("/bookinglog/<int:bookingID>")
+@app.route("/bookinglog/getBybookingID/<int:bookingID>")
 def find_by_bookingID(bookingID):
     bookinglog = BookingLog.query.filter_by(bookingID=bookingID).first()
     if bookinglog:
@@ -99,7 +99,7 @@ def find_by_bookingID(bookingID):
     ), 404
 
 # get all booking by accountID as the original booker
-@app.route("/bookinglog/<int:accountID>")
+@app.route("/bookinglog/getByaccountID/<int:accountID>")
 def find_by_accountID(accountID):
     bookingloglist = BookingLog.query.filter_by(accountID=accountID).all()
     if len(bookingloglist):

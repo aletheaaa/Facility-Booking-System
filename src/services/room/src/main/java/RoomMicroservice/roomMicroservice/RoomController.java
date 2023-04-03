@@ -74,6 +74,7 @@ public class RoomController {
     }
 
     // get room based on roomID
+    @CrossOrigin
     @GetMapping("/rooms/{id}")
     public JSONObject
     getRoomByRoomId(@PathVariable("id") Integer roomId )
