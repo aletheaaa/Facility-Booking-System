@@ -47,7 +47,11 @@
                     <td>{{ room.bookingDate }}</td>
                     <td>{{ room.startTime }}</td>
                     <td>{{ room.endTime }}</td>
-                    <td><button class="btn btn-primary" @click="confirmBooking(room.bookingID)">Confirm Booking</button></td>
+                    <td>    
+                        <button class="btn btn-primary" @click="confirmBooking(room)" :disabled="room.userConfirmed">
+                            {{ room.userConfirmed ? 'Confirmed' : 'Confirm Booking' }}
+                        </button>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -114,7 +118,7 @@ export default {
                 }).catch(error => console.error(error));
             }
         }).catch(error => console.error(error));
-
+        
         // get coBookedRooms
         fetch('http://localhost:5001/bookinglog/coBooker/2' )
         .then(response => response.json())
@@ -136,6 +140,7 @@ export default {
                     this.coBookedRooms[i].endTime = this.coBookedRooms[i].endTime.slice(-11,-3);
                     const allAccepted = this.coBookedRooms[i].coBooker.every(coBooker => coBooker.acceptStatus === 'True');
                     this.coBookedRooms[i].roomStatus = allAccepted ? 'Confirmed' : 'Unconfirmed';
+                    this.coBookedRooms[i].userConfirmed = this.coBookedRooms[i].coBooker.find(coBooker => coBooker.accountID === 2).acceptStatus === 'True';
                     // now we get room name using getroombyroomid
                     fetch('http://localhost:8080/rooms/' + this.coBookedRooms[i].roomId)
                     .then(response => response.json())
@@ -152,8 +157,35 @@ export default {
     
     
     methods: {
-        confirmBooking() {
-            // alert("Booking Confirmed!")
+        async confirmBooking(room) {
+            const bookingID = room.bookingID;
+            const accountID = this.userID;
+            const amount = room.price / (room.coBooker.length + 1);
+            console.log(room.coBooker.length);
+            const body = {
+                "bookingID": bookingID,
+                "accountID": 2,
+                "amount": amount
+            };
+            console.log(body);
+            
+            try {
+                const response = await fetch('http://localhost:5003/coBookerAccepts', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                console.log(data);
+                alert("Confirmation Successful");
+                room.bookingConfirmed = true; // Disable the confirm button for this room
+                this.$forceUpdate();
+            } catch (error) {
+                console.error(error);
+                // Handle error
+            }
         },
         getCurrentUserEmail
     },
