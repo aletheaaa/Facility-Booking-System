@@ -6,6 +6,8 @@ networks:
     driver: bridge
   make-bookings-network:
     driver: bridge
+  cancel-booking-network:
+    driver: bridge
   my-network:
 
 services:
@@ -122,7 +124,7 @@ services:
     build:
       context: ./updateBooking
       dockerfile: Dockerfile
-    # restart: always
+    restart: always
     ports:
       - "5003:5003"
     networks:
@@ -149,3 +151,22 @@ services:
       - db
       - room
       - bookinglogs
+
+  #################################
+  # cancelbooking: The cancelbooking microservice
+  #################################
+  cancelbooking:
+    image: aletheatohh/cancelbooking:1.0
+    restart: always
+    build:
+      context: ./cancelBooking
+      dockerfile: Dockerfile
+    ports:
+      - "5005:5005"
+    networks:
+      - cancel-booking-network
+    depends_on:
+      - payment
+      - bookinglogs
+      - room
+      # - notif
