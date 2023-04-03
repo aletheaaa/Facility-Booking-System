@@ -28,15 +28,14 @@
                 </div>
                 <div class="container">
                     <h3>Co-Booker Details</h3>
-                    <ol v-if="this.cobooker.length > 0" >
+                    <ol v-show="this.cobooker.length > 0" >
                         <li v-for="booker in this.cobooker">
                             Email : {{ booker }}
                         </li>
                     </ol>
-                    <p v-else>
-                        NIL
+                    <p v-show="this.cobooker.length == 0">
+                        No co-bookers
                     </p>
-
                     <p>Enter new email:
                         <input type="email" name="" id="newBooker" style="margin-right: 10px"> 
                         <button class="btn btn-primary" @click="addCoBooker">Add</button>
@@ -71,7 +70,7 @@ export default {
     
     mounted() {
         this.bookingInfo = JSON.parse(this.$route.query.bookingInfo);
-
+        
         // Changing Time Format
         // From UI, format is like this:
         const startTimeInHrs = this.$route.query.startTime; // this.startTime = '1500';
@@ -80,6 +79,7 @@ export default {
         // Need to change to below format to match makeBooking service input reqs e.g. startTime = "YYYY-MM-DD HH:MM:SS";
         this.startTime = dateChosen + " " + startTimeInHrs.slice(0,2) + ':' + startTimeInHrs.slice(2) + ':00';
         this.endTime   = dateChosen + " " + endTimeInHrs.slice(0,2) + ':' + endTimeInHrs.slice(2) + ':00';
+        console.log(this.bookingInfo);
 
 
 

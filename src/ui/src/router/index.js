@@ -3,6 +3,7 @@ import BookRoom from '../views/BookRoom.vue'
 import Login from '../views/Login.vue'
 import Main from '../views/Main.vue'
 import Account from '../views/Account.vue'
+import Admin from '../views/Admin.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,6 +40,11 @@ const router = createRouter({
       path: '/account',
       name: 'Account',
       component: Account
+    },
+    {
+      path: '/admin',
+      name: 'Admin',
+      component: Admin
     }
     
   ]

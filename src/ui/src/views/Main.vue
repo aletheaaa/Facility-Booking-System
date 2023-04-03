@@ -155,6 +155,7 @@ export default {
             starttime: '',
             endtime: '',
             rooms: [],
+            takenRooms: [],
             displayRooms: false,
             get_rooms : "http://localhost:5004/accessTakenBooking",
             get_all_rooms: "http://localhost:8080/rooms"
@@ -190,7 +191,7 @@ export default {
             roomtypearray.push(this.roomtype);
             roomlocarray.push(this.roomlocation);
             // this.rooms = this.getAllRooms();
-            this.getAllRooms();
+            this.rooms = this.getAllRooms();
             var bodydata = {
                 "roomType": roomtypearray,
                 "location": roomlocarray,
@@ -206,10 +207,19 @@ export default {
             })
             .then(response => response.json()) // Parse response body as JSON
             .then(data => {
-                console.log(data)
-            }) // Do something with the data
-            .catch(error => console.error(error));
-        },
+                console.log(data);
+                this.takenRooms = data.data.data;
+                console.log()
+                this.rooms = this.rooms.filter(room => {
+                    const takenRoom = this.takenRooms.find(takenRoom => takenRoom.bookingID === room.bookingID);
+                    return !takenRoom;
+                });
+                console.log(this.rooms);
+                
+            })
+            .catch(error => console.error(error))
+        }, // Do something with the data
+        
         bookRoom(roomId) {
             console.log("book room");
             console.log(roomId);
@@ -217,13 +227,13 @@ export default {
             router.push({ 
                 path: '/book', 
                 query: { bookingInfo: JSON.stringify(this.rooms[roomId]),
-                         date: this.date,
-                         starttime: this.starttime,
-                         endtime: this.endtime } 
-            })
+                    date: this.date,
+                    starttime: this.starttime,
+                    endtime: this.endtime } 
+                })
+                
+            }
             
-        }
-        
-    },
-}
+        },
+    }
 </script>
