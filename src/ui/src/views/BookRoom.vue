@@ -1,4 +1,7 @@
 <template>
+    <div class="booking-cta">
+        <h1 class="display-1 text-light font-weight-bold">SMU <br>Facilities Booking System</h1>
+    </div>
     <div id="app">
         <div id="booking" class="container">
             <div class="booking-form w-100 p-5 bg-light">
