@@ -179,13 +179,12 @@ export default {
         },
         
         findRooms() {
-            // This function will get all the rooms from the database based on user specification, store it in this.rooms
             this.displayRooms = true;
-            console.log(this.roomlocation);
-            console.log(this.roomtype);
-            console.log(this.date);
-            console.log(this.starttime);
-            console.log(this.duration);
+            // console.log(this.roomlocation);
+            // console.log(this.roomtype);
+            // console.log(this.date);
+            // console.log(this.starttime);
+            // console.log(this.duration);
             var roomlocarray = [];
             var roomtypearray = [];
             roomtypearray.push(this.roomtype);
@@ -195,7 +194,7 @@ export default {
             var bodydata = {
                 "roomType": roomtypearray,
                 "location": roomlocarray,
-                "dateChosen": toString(this.date),
+                "dateChosen": this.date,
             }
             console.log(bodydata);
             fetch(this.get_rooms, {
@@ -217,7 +216,10 @@ export default {
             console.log(this.rooms[roomId]);
             router.push({ 
                 path: '/book', 
-                query: { bookingInfo: JSON.stringify(this.rooms[roomId]) } 
+                query: { bookingInfo: JSON.stringify(this.rooms[roomId]),
+                         date: this.date,
+                         starttime: this.starttime,
+                         endtime: this.endtime } 
             })
             
         }

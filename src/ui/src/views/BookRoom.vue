@@ -16,19 +16,20 @@
                 <div class="container">
                     <h3>Booking time:</h3>
                     <ul>
-                        <!-- todo: get this info from prev page as well -->
-                        <li>Date: {{ bookingInfo.date }}</li>
-                        <li>Start time: {{ bookingInfo.startTime }}</li>
-                        <li>End time: {{ bookingInfo.endTime }}</li>
+                        <!-- TODO: get this info from prev page as well -->
+                        <li>Date: {{ date }}</li>
+                        <li>Start time: {{ startTime }}</li>
+                        <li>End time: {{ endTime }}</li>
                     </ul>
                 </div>
                 <div class="container">
                     <h3>Add a Co-Booker:</h3>
-                    <!-- todo: add text input field -->
+                    <!-- TODO: add text input field -->
                     <p>Co-Booker email: </p>
                     <input type="email" name="" id="">
                 </div>
                 <button class="btn btn-lg btn-danger mt-3">
+                    <!-- TODO: add makeBooking functionality -->
                     Confirm Booking
                 </button>
             </div>
@@ -42,10 +43,16 @@ export default {
     data() {
         return {
             bookingInfo: [],
+            date: '',
+            startTime: '',
+            endTime: '',
         };
     },
     mounted() {
         this.bookingInfo = JSON.parse(this.$route.query.bookingInfo);
+        this.date = this.$route.query.date;
+        this.startTime = this.$route.query.startTime;
+        this.endTime = this.$route.query.endTime;
     },
     methods: {},
 };
