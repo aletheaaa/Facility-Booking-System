@@ -5,21 +5,25 @@
         <button class="btn btn-primary" @click="getCurrentUserEmail()">Get user email </button>
     </div>
     <div class="container">
-        <table class="table table-striped">
+        <table class="table table-light">
             <thead>
                 <tr>
                     <th scope="col">Room ID</th>
                     <th scope="col">Room Name</th>
                     <th scope="col">Room Status</th>
                     <th scope="col">Booking Date</th>
+                    <th scope="col">Start Time</th>
+                    <th scope="col">End Time</th>
                 </tr>
             </thead>
             <tbody id="booked">
                 <tr>
                     <td scope="col">{{ bookedRooms.roomId }}</td>
-                    <td scope="col">{{ bookedRooms.roomName }}</td>
+                    <td scope="col">{{ roomName }}</td>
                     <td scope="col">{{ bookedRooms.roomStatus }}</td>
-                    <td scope="col">{{ bookedRooms.bookingDate }}</td>
+                    <td scope="col">{{ bookingDate }}</td>
+                    <td scope="col">{{ startTime }}</td>
+                    <td scope="col">{{ endTime }}</td>
                 </tr>
             </tbody>
         </table>
@@ -50,15 +54,18 @@ export default {
         return {
             bookedRooms: [],
             userID: 0,
+            roomID: 0,
+            roomName: '',
+            startTime: '',
+            endTime: '',
+            bookingDate: '',
         }
     },
     
     mounted() {
-        const bookedRoomsUrl = 'http://localhost:5001/bookinglog';
-        let userId = '';
-        
         getCurrentUserEmail()
         .then(userEmail => {
+            console.log(userEmail);
             if (userEmail) {
                 return fetch(`http://localhost:5002/payment/getAccountID/${userEmail}`)
             }
@@ -66,15 +73,23 @@ export default {
         })
         .then(response => response.json())
         .then(data => {
-            userId = data.userId;
-            return fetch(`${bookedRoomsUrl}?userId=${userId}`);
+            this.userID = data.data.accountID;
+            console.log(this.userID)
+            return fetch('http://localhost:5001/bookinglog/' + this.userID);
         })
         .then(response => response.json())
         .then(data => {
             if (data.code === 200) {
                 this.bookedRooms = data.data;
+                console.log(this.bookedRooms)
+                this.roomID = this.bookedRooms.roomId;
+                console.log(this.roomID)
+                this.startTime = this.bookedRooms.startTime.slice(-11,-3);
+                this.endTime = this.bookedRooms.endTime.slice(-11,-3);
+                this.bookingDate = this.bookedRooms.startTime.slice(0,10);
                 const allAccepted = this.bookedRooms.coBooker.every(coBooker => coBooker.acceptStatus === 'True');
                 this.bookedRooms.roomStatus = allAccepted ? 'Confirmed' : 'Unconfirmed';
+                this.roomName = fetch('http://localhost:8080/room/' + this.roomID)
             } else {
                 console.log('Failed to fetch booking data.');
             }
