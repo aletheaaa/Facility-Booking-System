@@ -13,11 +13,25 @@ const firebaseConfig = {
     messagingSenderId: "76006540168",
     appId: "1:76006540168:web:fb66edf97a4623b652b03d",
     measurementId: "G-SDMVB049GX"
-  };
-  
+};
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+export const getCurrentUserEmail = () => {
+    return new Promise((resolve, reject) => {
+        const auth = getAuth();
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user) {
+                resolve(user.email);
+            } else {
+                resolve(null);
+            }
+            unsubscribe();
+        });
+    });
+};
 
 // const auth = getAuth();
 export const isLoggedIn = () => {
@@ -36,13 +50,13 @@ export const isLoggedIn = () => {
 // signing the user out 
 export const signout = () => {
     signOut(getAuth())
-        .then(() => {
-            console.log('Signed Out');
-            router.push('/')
-        })
-        .catch(e => {
-            console.error('Sign Out Error', e);
-        });
+    .then(() => {
+        console.log('Signed Out');
+        router.push('/')
+    })
+    .catch(e => {
+        console.error('Sign Out Error', e);
+    });
 };
 
 
@@ -63,20 +77,20 @@ export const login = () => {
         console.log("Successfully signed in")
         router.push('/main')
     })
-
-        .catch(function (error) {
-            // Handle Errors here.
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            if (errorCode === "auth/wrong-password") {
-                alert("Incorrect password!");
-            }
-            else if (errorCode === "auth/user-not-found") {
-                alert("User not found! Please enter a valid email address");
-            }
-            else {
-                alert(errorMessage);
-            }
-            console.log(error);
-        });
+    
+    .catch(function (error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        if (errorCode === "auth/wrong-password") {
+            alert("Incorrect password!");
+        }
+        else if (errorCode === "auth/user-not-found") {
+            alert("User not found! Please enter a valid email address");
+        }
+        else {
+            alert(errorMessage);
+        }
+        console.log(error);
+    });
 }
