@@ -67,6 +67,7 @@
 </template>
 
 <script>
+import router from '../router';
 import { getCurrentUserEmail } from '../utils'
 export default {
     name: 'Account',
@@ -90,7 +91,10 @@ export default {
             if (userEmail) {
                 return fetch(`http://localhost:5002/payment/getAccountID/${userEmail}`)
             }
-            throw new Error('User email not found');
+            else{
+                router.push('/')
+                throw new Error('User email not found');
+            }
         })
         .then(response => response.json())
         .then(data => {
