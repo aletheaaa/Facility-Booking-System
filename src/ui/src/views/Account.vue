@@ -26,35 +26,43 @@
                 </tr>
             </tbody>
         </table>
+        <div>
+            
+        </div>
         <h1 class="display-1 text-light font-weight-bold mt-5">Co-Booked Rooms</h1>
-        <table class="table table-light">
-            <thead>
-                <tr>
-                    <th scope="col">Room ID</th>
-                    <th scope="col">Room Name</th>
-                    <th scope="col">Room Status</th>
-                    <th scope="col">Booking Date</th>
-                    <th scope="col">Start Time</th>
-                    <th scope="col">End Time</th>
-                    <th scope="col">Confirm Booking</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="room in coBookedRooms" :key="room.bookingID">
-                    <td>{{ room.bookingID }}</td>
-                    <td>{{ room.roomName }}</td>
-                    <td>{{ room.roomStatus }}</td>
-                    <td>{{ room.bookingDate }}</td>
-                    <td>{{ room.startTime }}</td>
-                    <td>{{ room.endTime }}</td>
-                    <td>    
-                        <button class="btn btn-primary" @click="confirmBooking(room)" :disabled="room.userConfirmed">
-                            {{ room.userConfirmed ? 'Confirmed' : 'Confirm Booking' }}
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div v-show="coBookedRooms.length > 0">
+            <table class="table table-light">
+                <thead>
+                    <tr>
+                        <th scope="col">Room ID</th>
+                        <th scope="col">Room Name</th>
+                        <th scope="col">Room Status</th>
+                        <th scope="col">Booking Date</th>
+                        <th scope="col">Start Time</th>
+                        <th scope="col">End Time</th>
+                        <th scope="col">Confirm Booking</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="room in coBookedRooms" :key="room.bookingID">
+                        <td>{{ room.bookingID }}</td>
+                        <td>{{ room.roomName }}</td>
+                        <td>{{ room.roomStatus }}</td>
+                        <td>{{ room.bookingDate }}</td>
+                        <td>{{ room.startTime }}</td>
+                        <td>{{ room.endTime }}</td>
+                        <td>    
+                            <button class="btn btn-primary" @click="confirmBooking(room)" :disabled="room.userConfirmed">
+                                {{ room.userConfirmed ? 'Confirmed' : 'Confirm Booking' }}
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div v-show="!coBookedRooms.length > 0">
+            <p class="display-4 text-light">You have no co-bookings at the moment</p>
+        </div>
     </div>
 </template>
 
@@ -120,7 +128,7 @@ export default {
         }).catch(error => console.error(error));
         
         // get coBookedRooms
-        fetch('http://localhost:5001/bookinglog/coBooker/2' )
+        fetch('http://localhost:5001/bookinglog/coBooker/' + this.userID )
         .then(response => response.json())
         .then(data => {
             this.coBookedRooms = data.data.bookinglogs;
@@ -140,7 +148,7 @@ export default {
                     this.coBookedRooms[i].endTime = this.coBookedRooms[i].endTime.slice(-11,-3);
                     const allAccepted = this.coBookedRooms[i].coBooker.every(coBooker => coBooker.acceptStatus === 'True');
                     this.coBookedRooms[i].roomStatus = allAccepted ? 'Confirmed' : 'Unconfirmed';
-                    this.coBookedRooms[i].userConfirmed = this.coBookedRooms[i].coBooker.find(coBooker => coBooker.accountID === 2).acceptStatus === 'True';
+                    this.coBookedRooms[i].userConfirmed = this.coBookedRooms[i].coBooker.find(coBooker => coBooker.accountID === this.userID).acceptStatus === 'True';
                     // now we get room name using getroombyroomid
                     fetch('http://localhost:8080/rooms/' + this.coBookedRooms[i].roomId)
                     .then(response => response.json())
