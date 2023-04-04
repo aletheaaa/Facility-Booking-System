@@ -169,43 +169,43 @@ export default {
                     },
                     
                     
-                    // created a function get accountID from payment but it always throw error saying no CORS access
-                    getAccountID() {
-                        fetch(this.accountInfo + this.email) // from Login page
-                        .then(response => response.json()) // Parse response body as JSON
-                        .then(response => {
-                            
-                            const accountData = response;
-                            console.log(accountData.data)
-                            this.accountID = [accountData.data.account];
-                            console.log(accountID)
-                            return this.accountID;
-                            
-                        })
-                        .catch(err => {
-                            console.log(`Error getting accountID`, err);
-                        });
-                    },
+        // created a function get accountID from payment but it always throw error saying no CORS access
+        getAccountID() {
+            fetch(this.accountInfo + this.email) // from Login page
+            .then(response => response.json()) // Parse response body as JSON
+            .then(response => {
+                
+                const accountData = response;
+                console.log(accountData.data)
+                this.accountID = [accountData.data.account];
+                console.log(accountID)
+                return this.accountID;
+                
+            })
+            .catch(err => {
+                console.log(`Error getting accountID`, err);
+            });
+        },
+        
+        getPrice(){
+            const cost = this.bookingInfo.cost;
+            // this function needs to take in startTime and endTime and find the duration in hours and multiply by cost
+            const startTime = this.startTime;
+            const endTime = this.endTime;
+            
+            const [startHour, startMinute] = startTime.match(/.{1,2}/g);
+            const [endHour, endMinute] = endTime.match(/.{1,2}/g);
+            
+            const startDate = new Date(0, 0, 0, startHour, startMinute);
+            const endDate = new Date(0, 0, 0, endHour, endMinute);
+            
+            const timeDiff = endDate.getTime() - startDate.getTime();
+            const hoursDiff = timeDiff / (1000 * 60 * 60);
+            // console.log(hoursDiff * cost)
+            return hoursDiff * cost;
+            
+        }
                     
-                    getPrice(){
-                        const cost = this.bookingInfo.cost;
-                        // this function needs to take in startTime and endTime and find the duration in hours and multiply by cost
-                        const startTime = this.startTime;
-                        const endTime = this.endTime;
-
-                        const [startHour, startMinute] = startTime.match(/.{1,2}/g);
-                        const [endHour, endMinute] = endTime.match(/.{1,2}/g);
-                        
-                        const startDate = new Date(0, 0, 0, startHour, startMinute);
-                        const endDate = new Date(0, 0, 0, endHour, endMinute);
-                        
-                        const timeDiff = endDate.getTime() - startDate.getTime();
-                        const hoursDiff = timeDiff / (1000 * 60 * 60);
-                        // console.log(hoursDiff * cost)
-                        return hoursDiff * cost;
-                        
-                    }
-                    
-                }
-            }
-        </script>
+    }
+}
+</script>
