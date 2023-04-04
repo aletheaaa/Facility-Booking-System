@@ -47,7 +47,10 @@ INSERT INTO accounts (email, balance) VALUES
   ('jane.smith@example.com', 460.00),
   ('bob.johnson@example.com', 440.00),
   ('susan.taylor@example.com', 100.00),
-  ('jim.wilson@example.com', 400.00);
+  ('jim.wilson@example.com', 400.00),
+  ('ESDFBSproj1@outlook.com', 400.00),
+  ('ESDFBSproj2@outlook.com', 400.00);
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
