@@ -6,7 +6,6 @@
     </nav> -->
     <div class="booking-cta">
         <h1 class="display-1 text-light font-weight-bold">SMU <br>Facilities Booking System</h1>
-        <button class="btn btn-lg btn-danger" @click="getAllRooms()"> TEST ME </button>
     </div>
     <div id="app">
         <div id="booking" class="container" v-show="!displayRooms">
@@ -125,7 +124,7 @@
                     <tr>
                         <th scope="col">Room ID</th>
                         <th scope="col">Room Name</th>
-                        <th scope="col">Room Status</th>
+                        <th scope="col">Room Type</th>
                         <th scope="col">Book Room</th>
                     </tr>
                 </thead>
@@ -158,27 +157,22 @@ export default {
             takenRooms: [],
             displayRooms: false,
             get_rooms : "http://localhost:5004/accessTakenBooking",
-            get_all_rooms: "http://localhost:8080/rooms"
+            get_all_rooms: "http://localhost:8080/rooms",
+            allRooms: [],
         }
     },
-    methods: {
-        getAllRooms(){
-            // This function will get all the rooms from the database, as a list of roomIds
-            this.displayRooms = true;
-            console.log("Getting all rooms");
-            fetch(this.get_all_rooms)
-            .then(response => response.json()) // Parse response body as JSON
-            .then(response => {
-                var allRooms = response;
-                console.log(allRooms.data)
-                this.rooms = allRooms.data;
-                return allRooms;
-            })
-            .catch(err => {
-                console.log(`Error getting documents`, err);
-            });
-        },
-        
+    mounted() {
+        fetch(this.get_all_rooms)
+        .then(response => response.json()) // Parse response body as JSON
+        .then(response => {
+            console.log(response.data)
+            this.allRooms = response.data
+        })
+        .catch(err => {
+            console.log(`Error getting documents`, err);
+        });
+    },
+    methods: {  
         findRooms() {
             this.displayRooms = true;
             // console.log(this.roomlocation);
@@ -191,13 +185,11 @@ export default {
             roomtypearray.push(this.roomtype);
             roomlocarray.push(this.roomlocation);
             // this.rooms = this.getAllRooms();
-            this.rooms = this.getAllRooms();
             var bodydata = {
                 "roomType": roomtypearray,
                 "location": roomlocarray,
                 "dateChosen": this.date,
             }
-            console.log(bodydata);
             fetch(this.get_rooms, {
                 method: 'POST',
                 headers: {
@@ -207,13 +199,22 @@ export default {
             })
             .then(response => response.json()) // Parse response body as JSON
             .then(data => {
-                console.log(data);
                 this.takenRooms = data.data.data;
-                console.log()
-                this.rooms = this.rooms.filter(room => {
-                    const takenRoom = this.takenRooms.find(takenRoom => takenRoom.bookingID === room.bookingID);
-                    return !takenRoom;
-                });
+                console.log(this.takenRooms);
+                console.log("allrooms: " + this.allRooms);
+                console.log("allrooms: " + this.allRooms.length);
+                const takenIDs = this.takenRooms.map(booking => booking.bookingID);
+                console.log(takenIDs);
+                for (var i = 0; i < this.allRooms.length; i++) {
+                    var currentRoom = this.allRooms[i];
+                    console.log(currentRoom);
+                    var currentRoomID = this.allRooms[i].roomId;
+                    console.log(currentRoomID)
+                    if (!takenIDs.includes(currentRoomID)) {
+                        console.log("pipipupu")
+                        this.rooms.push(currentRoom);
+                    }
+                }
                 console.log(this.rooms);
                 
             })
@@ -233,7 +234,7 @@ export default {
                 })
                 
             }
-            
-        },
-    }
-</script>
+                    
+                },
+            }
+        </script>
