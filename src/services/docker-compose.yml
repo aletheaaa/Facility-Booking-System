@@ -23,13 +23,14 @@ services:
     networks:
       - my-network
       - cancel-booking-network
+      - update-booking-network
     depends_on:
       rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "rabbitmq-diagnostics ping -q"]
       interval: 10s
-      retries: 10
+      retries: 20
 
   # #################################
   # # rabbitmq: The RabbitMQ image
@@ -41,13 +42,14 @@ services:
     networks:
       - my-network
       - cancel-booking-network
+      - update-booking-network
     ports:
       - "5672:5672"
       - "15672:15672"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
-      retries: 20
+      retries: 15
   
   ################################
   # BookingLogs: The BookingLogs microservice
@@ -124,20 +126,20 @@ services:
   ################################
   # updateBooking: The updateBooking microservice
   ################################
-  # updatebooking:
-  #   image: aletheatohh/updatebooking:1.0
-  #   restart: always
-  #   build:
-  #     context: ./updateBooking
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "5003:5003"
-  #   networks:
-  #     - update-booking-network
-  #   depends_on:
-  #     - payment
-  #     - bookinglogs
-  #     # - notification
+  updatebooking:
+    image: aletheatohh/updatebooking:1.0
+    restart: always
+    build:
+      context: ./updateBooking
+      dockerfile: Dockerfile
+    ports:
+      - "5003:5003"
+    networks:
+      - update-booking-network
+    depends_on:
+      - notif
+      - payment
+      - bookinglogs
 
   # #################################
   # # accesstakenbooking: The accesstakenbooking microservice
