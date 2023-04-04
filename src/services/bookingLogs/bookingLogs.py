@@ -139,7 +139,7 @@ def find_by_coBooker(accountID):
         }
     ), 404
 
-# get all the bookings for the selected fields to get the available rooms
+# get all the bookings for the selected fields to get the taken rooms
 @app.route("/bookinglog/getTaken", methods=['GET'])
 def find_booking():
     data = request.get_json()
