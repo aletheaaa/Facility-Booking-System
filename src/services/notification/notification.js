@@ -10,30 +10,68 @@ var subject_title = 'confirmation';
 
 //json variables: bookerAddress, coBookerAddress,roomName, cost, bookingID, startTime, endTime, type
 //ESDFBSproj is the mail name to send emails
-function toSend(details,subject,mailnames,message){ //function to send emails in a round robin fashion due to domains having spam protection after sending multiple mails
-  const mailAccounts = [
-    {
-      service: 'hotmail',
-      auth: {
-        email: 'ESDFBSproj@outlook.com',
-        password: 'ESD1235-6789FBS',
-    }},
-    {
-      service: 'protonmail',
-      auth: {
-        email: 'ESDFBSproj@proton.me',
-        password: 'ESD1235-6789FBS',
-    }},
-    {
-      service: 'tutanota',
-      auth: {
-        email: 'ESDFBSproj@tutanota.com',
-        password: 'ESD1235-6789FBS',
-    }},
-  ];
+function toSend(details,subject,mailnames,message,status){ //function to send emails in a round robin fashion due to domains having spam protection after sending multiple mails
+  var emailGroup1 = [{
+    service: 'hotmail',
+    auth: {
+      email: 'ESDFBSproj@outlook.com',
+      password: 'ESD1235-6789FBS',
+  }},
+  {
+    service: 'hotmail',
+    auth: {
+      email: 'ESDFBSproj3@outlook.com',
+      password: 'ESD1235-6789FBS',
+
+  }},
+  {
+    service: 'hotmail',
+    auth: {
+      email: 'ESDFBSproj4@outlook.com',
+      password: 'ESD1235-6789FBS',
+  }},
+  {
+    service: 'hotmail',
+    auth: {
+      email: 'ESDFBSproj5@outlook.com',
+      password: 'ESD1235-6789FBS',
+  }}]
+
+  var emailGroup2 = [{
+    service: 'hotmail',
+    auth: {
+      email: 'ESDFBSproj6@outlook.com',
+      password: 'ESD1235-6789FBS',
+  }},
+  {
+    service: 'hotmail',
+    auth: {
+      email: 'ESDFBSproj7@outlook.com',
+      password: 'ESD1235-6789FBS',
+
+  }},
+  {
+    service: 'hotmail',
+    auth: {
+      email: 'ESDFBSproj8@outlook.com',
+      password: 'ESD1235-6789FBS',
+  }},
+  {
+    service: 'hotmail',
+    auth: {
+      email: 'ESDFBSproj9@outlook.com',
+      password: 'ESD1235-6789FBS',
+  }}]
+  
+  if (status == 0){
+    var mailAccounts = emailGroup1
+  }
+  else {
+    var mailAccounts = emailGroup2
+  }
   
   // Index of the current mail account to use
-  let currentIndex = 0;
+  let currentIndex = Math.floor(Math.random() * 4);
   
   // Define the nodemailer transporter outside of the sendMail function
   const transporter = nodemailer.createTransport({
@@ -50,10 +88,20 @@ function toSend(details,subject,mailnames,message){ //function to send emails in
       console.log(`Failed to send email with ${mailAccounts[currentIndex].auth.email}: ${error.message}`);
       currentIndex = (currentIndex + 1) % mailAccounts.length;
       console.log(`Trying next mail account: ${mailAccounts[currentIndex].auth.email}`);
-      transporter.options.service = mailAccounts[currentIndex].service;
-      transporter.options.auth.user = mailAccounts[currentIndex].auth.email;
-      transporter.options.auth.pass = mailAccounts[currentIndex].auth.password;
-      transporter.sendMail(mailOptions, (err, info) => tryNextMailAccount(err, info, mailOptions));
+
+    // Update the from field with the current mail account email address
+      mailOptions.from = mailAccounts[currentIndex].auth.email;
+
+      const newTransporter = nodemailer.createTransport({
+        service: mailAccounts[currentIndex].service,
+        auth: {
+          user: mailAccounts[currentIndex].auth.email,
+          pass: mailAccounts[currentIndex].auth.password,
+        },
+      });
+      setTimeout(() => {
+        newTransporter.sendMail(mailOptions, (err, info) => tryNextMailAccount(err, info, mailOptions));
+      }, 15000);
     } else {
       console.log(`Email sent with ${mailAccounts[currentIndex].auth.email}: ${info.response}`);
       console.log(`Recipients: ${mailnames}`);
@@ -61,8 +109,8 @@ function toSend(details,subject,mailnames,message){ //function to send emails in
     }
   }
   
-  const mailOptions = {
-    from: 'ESDFBSproj@outlook.com',
+  var mailOptions = {
+    from: mailAccounts[currentIndex].auth.email,
     to: mailnames,
     subject: `Facility booking for ID:${details.bookingID} ${subject}`,
     text: message,
@@ -108,7 +156,7 @@ function mailer(details) {
       var userSelection = `location=${userSpecifications.location}&roomType=${userSpecifications.roomType}`
       var message = `This is to inform that there is cancellation of a booking on ${date} for ${details.roomName} at ${time}. 
 Credits deducted (if applicable) for the booking will be refunded shortly. To make a new booking, click on this link: http://127.0.0.1:5173/main?${userSelection}`
-      toSend(details,subject_title,mailnames,message)
+      toSend(details,subject_title,mailnames,message,0)
     }
 
     //if it is to update cobooker status
@@ -126,7 +174,7 @@ This link provides the booking information:
 http://127.0.0.1:5173/main`
 
         //send to original booker
-        toSend(details,subject_title,mailnames,message)
+        toSend(details,subject_title,mailnames,message,0)
         
         // set variables for cooboker confirmation
         mailnames = details.coBookerAddress
@@ -141,7 +189,7 @@ Time: ${time}
 This link provides the booking information:
 http://127.0.0.1:5173/main`
 
-        toSend(details,subject_title,mailnames,message)
+        toSend(details,subject_title,mailnames,message,1)
     }
         
 
@@ -163,7 +211,7 @@ Time: ${time}
 Please use this link to accept the booking:
 http://127.0.0.1:5173/main`
 
-        toSend(details,subject_title,mailnames,message)
+        toSend(details,subject_title,mailnames,message,0)
       }
       //mail to primary booker
       subject_title = `Confirmation for bookingID: ${details.bookingID}`
@@ -172,7 +220,7 @@ http://127.0.0.1:5173/main`
 Please use this link to see the booking information:
 http://127.0.0.1:5173/main`
 
-        toSend(details,subject_title,details.bookerAddress,message)
+        toSend(details,subject_title,details.bookerAddress,message,1)
     }
 }
 
