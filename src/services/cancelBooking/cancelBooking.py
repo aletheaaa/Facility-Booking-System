@@ -99,12 +99,12 @@ def getAvailableBooking():
     if brokerResult["code"] not in range(200, 300):
         return jsonify({
             "code": brokerResult["code"],
-            "message": brokerResult["data"],
+            "message": brokerResult["message"],
         }), brokerResult["code"]
 
     return jsonify({
         "code": 200,
-        "data": roomResult,
+        "data": roomResult['data'],
         "message": "Booking successfully cancelled."
     }), 200
 
