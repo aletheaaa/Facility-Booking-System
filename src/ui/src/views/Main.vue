@@ -200,18 +200,13 @@ export default {
             .then(response => response.json()) // Parse response body as JSON
             .then(data => {
                 this.takenRooms = data.data.data;
-                console.log(this.takenRooms);
-                console.log("allrooms: " + this.allRooms);
-                console.log("allrooms: " + this.allRooms.length);
                 const takenIDs = this.takenRooms.map(booking => booking.bookingID);
-                console.log(takenIDs);
                 for (var i = 0; i < this.allRooms.length; i++) {
                     var currentRoom = this.allRooms[i];
                     console.log(currentRoom);
                     var currentRoomID = this.allRooms[i].roomId;
                     console.log(currentRoomID)
                     if (!takenIDs.includes(currentRoomID)) {
-                        console.log("pipipupu")
                         this.rooms.push(currentRoom);
                     }
                 }
