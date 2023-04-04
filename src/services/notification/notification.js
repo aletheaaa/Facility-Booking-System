@@ -86,7 +86,7 @@ function mailer(details) {
 
     //to extract the time
     const start = new Date(details.startTime);
-    const end = new Date(details.startTime);
+    const end = new Date(details.endTime);
 
     const formattedStartTime = start.toLocaleTimeString([], {hour: 'numeric', minute: 'numeric', hour12: true});
     const formattedEndTime = end.toLocaleTimeString([], {hour: 'numeric', minute: 'numeric', hour12: true});
@@ -119,11 +119,11 @@ Credits deducted (if applicable) for the booking will be refunded shortly. To ma
 
 BookingID: ${details.bookingID}
 Date: ${date} 
-Roomname: ${details.roomName}
-Date: ${time}
+Room name: ${details.roomName}
+Time: ${time}
 
 This link provides the booking information:
-fbs.com`
+http://127.0.0.1:5173/main`
 
         //send to original booker
         toSend(details,subject_title,mailnames,message)
@@ -135,11 +135,11 @@ fbs.com`
 
 BookingID: ${details.bookingID}
 Date: ${date} 
-Roomname: ${details.roomName}
-Date: ${time}
+Room name: ${details.roomName}
+Time: ${time}
 
 This link provides the booking information:
-fbs.com`
+http://127.0.0.1:5173/main`
 
         toSend(details,subject_title,mailnames,message)
     }
@@ -157,11 +157,11 @@ fbs.com`
 Booking details:
 BookingID: ${details.bookingID}
 Date: ${date} 
-Roomname: ${details.roomName}
-Date: ${time}
+Room name: ${details.roomName}
+Time: ${time}
 
 Please use this link to accept the booking:
-fbs.com`
+http://127.0.0.1:5173/main`
 
         toSend(details,subject_title,mailnames,message)
       }
@@ -170,7 +170,7 @@ fbs.com`
       var message = `This is to inform you that your booking on ${date} for ${details.roomName} at ${time} has been approved.
 
 Please use this link to see the booking information:
-fbs.com`
+http://127.0.0.1:5173/main`
 
         toSend(details,subject_title,details.bookerAddress,message)
     }
