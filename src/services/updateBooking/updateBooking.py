@@ -10,13 +10,13 @@ import json
 app = Flask(__name__)
 CORS(app)
 
-# bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
-bookingLogs_URL = "http://localhost:5001/bookinglog"
+bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
+# bookingLogs_URL = "http://localhost:5001/bookinglog"
 
-# payment_URL = "http://host.docker.internal:5002/payment"
-payment_URL = "http://localhost:5002/payment"
+payment_URL = "http://host.docker.internal:5002/payment"
+# payment_URL = "http://localhost:5002/payment"
 
-# room_URL = "http://host.docker.internal:8080/rooms"
+room_URL = "http://host.docker.internal:8080/rooms"
 # room_URL = "http://localhost:8080/rooms"
 
 queueName = 'notification'
@@ -93,44 +93,44 @@ def getAvailableBooking():
             }), add_result["code"]
 
     # emailAccounts: first index is the email of the original booker, and the other is the email of the coBooker accepting
-    # emailAccounts = [] 
-    # accountList = [bookingLog['data']['accountID'], data['accountID']]
-    # print(accountList)
-    # for i in accountList:
-    #     account = invoke_http(payment_URL + "/" + str(i), method='GET')
-    #     print(account)
-    #     if account["code"] in range(200, 300):
-    #         emailAccounts.append(account['data']['email'])
+    emailAccounts = [] 
+    accountList = [bookingLog['data']['accountID'], data['accountID']]
+    print(accountList)
+    for i in accountList:
+        account = invoke_http(payment_URL + "/" + str(i), method='GET')
+        print(account)
+        if account["code"] in range(200, 300):
+            emailAccounts.append(account['data']['email'])
 
-    # '''connecting to room microservice'''
-    # # get the roomName from roomID
-    # room_result = invoke_http(room_URL + "/" + str(bookingLog["data"]["roomId"]), method='GET')
-    # if room_result["code"] not in range(200, 300):
-    #     return jsonify({
-    #         "code": room_result["code"],
-    #         "message": room_result["message"],
-    #     }), room_result["code"]
+    '''connecting to room microservice'''
+    # get the roomName from roomID
+    room_result = invoke_http(room_URL + "/" + str(bookingLog["data"]["roomId"]), method='GET')
+    if room_result["code"] not in range(200, 300):
+        return jsonify({
+            "code": room_result["code"],
+            "message": room_result["message"],
+        }), room_result["code"]
 
-    # '''connecting to notification microservice'''
-    # # connect to notification service to send notification to
-    # formattedStartTime = dateformatting(bookingLog["data"]["startTime"])
-    # formattedEndTime = dateformatting(bookingLog["data"]["endTime"])
-    # message = {
-    #     "bookingID": booking_result["data"]["bookingID"], 
-    #     "bookerAddress": emailAccounts[0], 
-    #     "coBookerAddress": [emailAccounts[1]], 
-    #     "type":"update", 
-    #     "roomName": room_result["data"]["roomName"], 
-    #     "startTime": formattedStartTime, 
-    #     "endTime": formattedEndTime 
-    # }
-    # print(message)
-    # brokerResult = rabbitmq(message)
-    # if brokerResult["code"] not in range(200, 300):
-    #     return jsonify({
-    #         "code": brokerResult["code"],
-    #         "message": brokerResult["data"],
-    #     }), brokerResult["code"]
+    '''connecting to notification microservice'''
+    # connect to notification service to send notification to
+    formattedStartTime = dateformatting(bookingLog["data"]["startTime"])
+    formattedEndTime = dateformatting(bookingLog["data"]["endTime"])
+    message = {
+        "bookingID": booking_result["data"]["bookingID"], 
+        "bookerAddress": emailAccounts[0], 
+        "coBookerAddress": [emailAccounts[1]], 
+        "type":"update", 
+        "roomName": room_result["data"]["roomName"], 
+        "startTime": formattedStartTime, 
+        "endTime": formattedEndTime 
+    }
+    print(message)
+    brokerResult = rabbitmq(message)
+    if brokerResult["code"] not in range(200, 300):
+        return jsonify({
+            "code": brokerResult["code"],
+            "message": brokerResult["data"],
+        }), brokerResult["code"]
 
     return jsonify({
             "code": 200,
