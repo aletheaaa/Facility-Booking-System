@@ -49,16 +49,16 @@ def get_all():
         }
     ), 404
 
-# get accountID from email
-@app.route("/payment/getAccountID/<string:email>", methods=["GET"])
-def get_accountID(email):
-    account = accounts.query.filter_by(email=email).first()
+# get email from accountID
+@app.route("/payment/getEmail/<int:accountID>", methods=["GET"])
+def get_email(accountID):
+    account = accounts.query.filter_by(accountID=accountID).first()
     if account:
         return jsonify(
             {
                 "code": 200,
                 "data": {
-                    "accountID": account.accountID,
+                    "email": account.email,
                     "balance": account.balance
                 }
             }
@@ -66,11 +66,11 @@ def get_accountID(email):
     return jsonify(
         {
             "code": 404,
-            "message": "Account with email " + email + " does not exist."
+            "message": "Account with ID " + str(accountID) + " does not exist."
         }
     ), 404
 
-# get the credits of the account
+# get account details from accountID
 @app.route('/payment/<int:accountID>', methods=['GET'])
 def getPaymentAccount(accountID):
     account = accounts.query.filter_by(accountID=accountID).first()
@@ -85,7 +85,8 @@ def getPaymentAccount(accountID):
                 "code": 200,
                 "data": {
                     "accountID": accountID,
-                    "accountBalance": account.balance
+                    "accountBalance": account.balance,
+                    "email": account.email
                 }
             }
         ), 200

@@ -104,8 +104,10 @@ function mailer(details) {
     //if it is a cancellation
     if (details.type == "cancel"){
       subject_title = "cancellation"
+      var userSpecifications = details.userSpecifications
+      var userSelection = `location=${userSpecifications.location}&roomType=${userSpecifications.roomType}`
       var message = `This is to inform that there is cancellation of a booking on ${date} for ${details.roomName} at ${time}. 
-Any credits deducted for the booking will be refunded shortly` 
+Credits deducted (if applicable) for the booking will be refunded shortly. To make a new booking, click on this link: http://127.0.0.1:5173/main?${userSelection}`
       toSend(details,subject_title,mailnames,message)
     }
 
