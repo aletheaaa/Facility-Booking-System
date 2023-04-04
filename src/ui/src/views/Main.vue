@@ -199,6 +199,8 @@ export default {
             })
             .then(response => response.json()) // Parse response body as JSON
             .then(data => {
+                
+                console.log(data)
                 if (data.data.data.length == 0) {
                     this.rooms = this.allRooms;
                     return;
@@ -206,21 +208,24 @@ export default {
                 this.takenRooms = data.data.data;
                 console.log(data.data.data)
                 const takenIDs = this.takenRooms.map(booking => booking.bookingID);
+                console.log(takenIDs);
+                console.log(this.allRooms.length)
                 for (var i = 0; i < this.allRooms.length; i++) {
                     var currentRoom = this.allRooms[i];
-                    console.log(currentRoom);
+                    // console.log(currentRoom);
                     var currentRoomID = this.allRooms[i].roomId;
-                    console.log(currentRoomID)
-                    if (!takenIDs.includes(currentRoomID)) {
-                        this.rooms.push(currentRoom);
+                    // console.log(currentRoomID)
+                    if (takenIDs.includes(currentRoomID)) {
+                        // skip this room if it's already taken
+                        continue;
                     }
+                    this.rooms.push(currentRoom);
+
                 }
                 console.log(this.rooms);
                 
             })
             .catch(error => console.error(error))
-            this.rooms = this.allRooms;
-            return;
         }, // Do something with the data
         
         bookRoom(roomId) {
