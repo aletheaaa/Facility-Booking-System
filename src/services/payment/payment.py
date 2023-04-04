@@ -5,8 +5,9 @@ from os import environ
 from flask_cors import CORS
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://is213@localhost:3306/accounts" 
+
+# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://is213@localhost:3306/accounts" 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 CORS(app)
 
@@ -98,7 +99,6 @@ def deduct():
     print("deducting credits")
     data = request.get_json()
     account_ids = data['accountID']
-    originalBookerID = data['accountID'][0]
     amount = data['amount']
 
     accountsNotFound = []
@@ -129,14 +129,9 @@ def deduct():
                 },
                 "message": "No valid accounts with insufficient funds found."
             }), 404
-    elif len(validAccounts) != len(account_ids):
-        costByInvalidAccounts = (len(account_ids) - len(validAccounts)) * amount
     for accountID in validAccounts:
         account = accounts.query.filter_by(accountID=accountID).first()
-        if accountID == originalBookerID and len(validAccounts) != len(account_ids):
-            account.balance -= (amount + costByInvalidAccounts)
-        else:
-            account.balance -= amount
+        account.balance -= amount
         
         try:
             db.session.commit()
