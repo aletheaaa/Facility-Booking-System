@@ -199,7 +199,12 @@ export default {
             })
             .then(response => response.json()) // Parse response body as JSON
             .then(data => {
+                if (data.data.data.length == 0) {
+                    this.rooms = this.allRooms;
+                    return;
+                }
                 this.takenRooms = data.data.data;
+                console.log(data.data.data)
                 const takenIDs = this.takenRooms.map(booking => booking.bookingID);
                 for (var i = 0; i < this.allRooms.length; i++) {
                     var currentRoom = this.allRooms[i];
@@ -214,6 +219,8 @@ export default {
                 
             })
             .catch(error => console.error(error))
+            this.rooms = this.allRooms;
+            return;
         }, // Do something with the data
         
         bookRoom(roomId) {
@@ -229,7 +236,7 @@ export default {
                 })
                 
             }
-                    
-                },
-            }
-        </script>
+            
+        },
+    }
+</script>
