@@ -7,44 +7,47 @@ networks:
   make-bookings-network:
     driver: bridge
   cancel-booking-network:
-    driver: bridge
   my-network:
 
 services:
   #################################
-  # notif: The Notification microservice
+  # notif: The Notif microservice
   #################################
-  # notif:
-  # build: .
-  # ports:
-  #   - "3000:3000"
-  # restart: always
-  # networks:
-  #   - my-network
-  # depends_on:
-  #   rabbitmq:
-  #     condition: service_healthy
-  # healthcheck:
-  #   test: ["CMD-SHELL", "rabbitmq-diagnostics ping -q"]
-  #   interval: 10s
-  #   retries: 5
+  notif:
+    build: 
+      context: ./notification
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    restart: always
+    networks:
+      - my-network
+      - cancel-booking-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics ping -q"]
+      interval: 10s
+      retries: 10
 
   # #################################
   # # rabbitmq: The RabbitMQ image
   # #################################
-  # rabbitmq:
-  #   image: rabbitmq:3-management
-  #   hostname: esd-rabbit
-  #   restart: always
-  #   networks:
-  #     - my-network
-  #   ports:
-  #     - "5672:5672"
-  #     - "15672:15672"
-  #   healthcheck:
-  #     test: ["CMD", "rabbitmq-diagnostics", "ping"]
-  #     interval: 10s
-  #     retries: 5
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: esd-rabbit
+    restart: always
+    networks:
+      - my-network
+      - cancel-booking-network
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      retries: 20
   
   ################################
   # BookingLogs: The BookingLogs microservice
@@ -76,6 +79,7 @@ services:
     networks:
       - update-booking-network
       - make-bookings-network
+      - cancel-booking-network
     environment:
       dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/accounts
     ports:
@@ -97,6 +101,7 @@ services:
       - "8080:8080"
     networks:
       - access-booking-network
+      - cancel-booking-network
 
   #################################
   # MySQL: The official image for MySQL
@@ -114,42 +119,43 @@ services:
       - "3306"
     networks:
       - access-booking-network
+      - cancel-booking-network
 
   ################################
   # updateBooking: The updateBooking microservice
   ################################
-  updatebooking:
-    image: aletheatohh/updatebooking:1.0
-    restart: always
-    build:
-      context: ./updateBooking
-      dockerfile: Dockerfile
-    ports:
-      - "5003:5003"
-    networks:
-      - update-booking-network
-    depends_on:
-      - payment
-      - bookinglogs
-      # - notif
+  # updatebooking:
+  #   image: aletheatohh/updatebooking:1.0
+  #   restart: always
+  #   build:
+  #     context: ./updateBooking
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "5003:5003"
+  #   networks:
+  #     - update-booking-network
+  #   depends_on:
+  #     - payment
+  #     - bookinglogs
+  #     # - notification
 
-  #################################
-  # accesstakenbooking: The accesstakenbooking microservice
-  #################################
-  accesstakenbooking:
-    image: aletheatohh/accesstakenbooking:1.0
-    restart: always
-    build:
-      context: ./accessTakenBooking
-      dockerfile: Dockerfile
-    ports:
-      - "5004:5004"
-    networks:
-      - access-booking-network
-    depends_on:
-      - db
-      - room
-      - bookinglogs
+  # #################################
+  # # accesstakenbooking: The accesstakenbooking microservice
+  # #################################
+  # accesstakenbooking:
+  #   image: aletheatohh/accesstakenbooking:1.0
+  #   restart: always
+  #   build:
+  #     context: ./accessTakenBooking
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "5004:5004"
+  #   networks:
+  #     - access-booking-network
+  #   depends_on:
+  #     - db
+  #     - room
+  #     - bookinglogs
 
   #################################
   # cancelbooking: The cancelbooking microservice
@@ -165,7 +171,7 @@ services:
     networks:
       - cancel-booking-network
     depends_on:
+      - notif
       - payment
       - bookinglogs
       - room
-      # - notif

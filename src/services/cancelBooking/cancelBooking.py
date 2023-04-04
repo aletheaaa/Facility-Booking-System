@@ -10,14 +10,14 @@ import pika
 app = Flask(__name__)
 CORS(app)
 
-# bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
-bookingLogs_URL = "http://localhost:5001/bookinglog"
+bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
+# bookingLogs_URL = "http://localhost:5001/bookinglog"
 
-# payment_URL = "http://host.docker.internal:5002/payment"
-payment_URL = "http://localhost:5002/payment"
+payment_URL = "http://host.docker.internal:5002/payment"
+# payment_URL = "http://localhost:5002/payment"
 
-# room_URL = "http://host.docker.internal:8080/rooms"
-room_URL = "http://localhost:8080/rooms"
+room_URL = "http://host.docker.internal:8080/rooms"
+# room_URL = "http://localhost:8080/rooms"
 
 queueName = 'notification'
 exchangeName = 'fbs'
@@ -107,7 +107,7 @@ def getAvailableBooking():
 def rabbitmq(content):
     try: 
         # Connect to RabbitMQ server
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='host.docker.internal'))
         channel = connection.channel()
 
         # Declare the exchange and set its type to "direct"
