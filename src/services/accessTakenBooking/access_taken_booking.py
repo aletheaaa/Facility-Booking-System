@@ -10,9 +10,10 @@ app = Flask(__name__)
 CORS(app)
 
 room_URL = "http://host.docker.internal:8080/rooms"
+# room_URL = "http://localhost:8080/rooms"
 
-# bookingLogs_URL = "http://localhost:5001/bookinglog"
 bookingLogs_URL = "http://host.docker.internal:5001/bookinglog"
+# bookingLogs_URL = "http://localhost:5001/bookinglog"
 
 @app.route("/accessTakenBooking", methods=['POST'])
 def access_taken_booking():
@@ -43,11 +44,13 @@ def access_taken_booking():
 
 def getTakenBooking(data):
     # user must input at least one of the two to prevent returning all rooms which requires a lot of processing
+    if type(data) == str:
+        data = json.loads(data)
     if len(data['roomType']) == 0 and len(data['location']) == 0:
         return {
                 "code": 400,
                 "message": "No room type or location specified."
-        }
+        }, 400
     
     # calling room microservice to get a list of rooms based on user specifications
     roomResult = invoke_http(room_URL + "/getSpecificRooms", method='GET', json=data)
@@ -64,25 +67,25 @@ def getTakenBooking(data):
         return {
                 "code": 500,
                 "message": "Error retreiving rooms."
-            }
+            }, 500
     elif len(roomResult["data"]) == 0:
         return {
                 "code": 404,
                 "message": "No rooms with user specifications found."
-            }
+            }, 404
 
     bookingLogResult = invoke_http(bookingLogs_URL + "/getTaken", method='GET', json=roomsJson)
     # print(bookingLogResult)
     
     if bookingLogResult["code"] not in range(200, 300):
         return {
-            "code": 200,
+            "code": 404,
             "message": "No bookings based on user's specifications found."
-        }
+        }, 404
     return {
         "code": 200,
         "data": bookingLogResult,
-    }
+    }, 200
 
 
 if __name__ == '__main__':
