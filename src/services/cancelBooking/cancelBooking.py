@@ -76,7 +76,7 @@ def getAvailableBooking():
 
     '''connecting to notification microservice'''
     # embed information of user specification of cancelled booking into notification
-    print(accountsToNotify)  # ['msic931@gmail.com', 'alethea.toh.2021@scis.smu.edu.sg']
+    # print(accountsToNotify)  # ['msic931@gmail.com', 'alethea.toh.2021@scis.smu.edu.sg']
     locationURLFormat = roomResult['data']['location'].replace(" ", "%20")
     roomTypeURLFormat = roomResult['data']['roomType'].replace(" ", "%20")
     message = {
@@ -95,7 +95,12 @@ def getAvailableBooking():
     }
     print(message)
     brokerResult = rabbitmq(message)
-    print(brokerResult)  # NEED TO CHECK THAT THIS WORKS
+    print(brokerResult)  # {'code': 200, 'data': 'Message published successfully.'}
+    if brokerResult["code"] not in range(200, 300):
+        return jsonify({
+            "code": brokerResult["code"],
+            "message": brokerResult["data"],
+        }), brokerResult["code"]
 
     return jsonify({
         "code": 200,
