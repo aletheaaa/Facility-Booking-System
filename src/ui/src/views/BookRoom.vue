@@ -58,10 +58,10 @@ export default {
     name: 'BookRoom',
     data() {
         return {
-            bookingInfo: [],
-            date: '',
-            startTime: '',
-            endTime: '',
+            bookingInfo: JSON.parse(this.$route.query.bookingInfo),
+            date: this.$route.query.date,
+            startTime: this.$route.query.startTime,
+            endTime: this.$route.query.endTime,
             bookingLogs: "http://localhost:5100/makeBooking",
             accountInfo: "http://localhost:5002/payment/getAccountID/",
             cobooker: [],
@@ -69,7 +69,8 @@ export default {
     },
     
     mounted() {
-        this.bookingInfo = JSON.parse(this.$route.query.bookingInfo);
+        // this.bookingInfo = JSON.parse(this.$route.query.bookingInfo);
+        console.log(this.bookingInfo);
         
         // Changing Time Format
         // From UI, format is like this:
