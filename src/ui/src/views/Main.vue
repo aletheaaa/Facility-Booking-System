@@ -220,12 +220,16 @@ export default {
                         continue;
                     }
                     this.rooms.push(currentRoom);
-
+                    
                 }
                 console.log(this.rooms);
                 
             })
-            .catch(error => console.error(error))
+            .catch(error => {console.error(error)
+                console.log("all rooms are available");
+                this.rooms = this.allRooms;
+            }
+            )
         }, // Do something with the data
         
         bookRoom(roomId) {

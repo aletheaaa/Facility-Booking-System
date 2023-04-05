@@ -73,6 +73,7 @@ export default {
             allEmails: [],
             userID: 0,
             userEmail: '',
+            accountBalance: 0,
         };
     },
     
@@ -110,10 +111,21 @@ export default {
         .then(response => response.json())
         .then(data => {
             this.userID = data.data.accountID;
-            // console.log("user"+this.userID)
+            console.log("user"+this.userID)
+            fetch("localhost:5002/payment/" + this.userID)
+            .then(response => response.json())
+            .then(data => {
+                this.accountBalance = data.data.accountBalance;
+                console.log("credits: "+this.userCredits)
+            })
+            .catch(error => {
+                console.error('Error fetching account balance:', error);
+            });
         }).catch(error => {
             console.error('Error fetching account ID:', error);
         });
+        
+        
         
     },
     methods: {
@@ -154,21 +166,25 @@ export default {
                 "coBookerEmails": [this.cobooker.map(id => this.allEmails[id])],
             }
             console.log(newBooking);
-            // fetch(this.bookingLogs, {
-                //     method: 'POST',
-                //     headers: {
-                    //         'Content-Type': 'application/json'
-                    //     },
-                    //     body: JSON.stringify(newBooking)
-                    // })
-                    // .then(response => response.json()) 
-                    // .then(data => {
-                        //     console.log(data)
-                        // }) 
-                        // .catch(error => console.error(error));
-                    },
-                    
-                    
+            if (this.accountBalance < newBooking.price) {
+                alert("Insufficient credits");
+                return;
+            }
+            fetch(this.bookingLogs, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newBooking)
+            })
+            .then(response => response.json()) 
+            .then(data => {
+                console.log(data)
+            }) 
+            .catch(error => console.error(error));
+        },
+        
+        
         // created a function get accountID from payment but it always throw error saying no CORS access
         getAccountID() {
             fetch(this.accountInfo + this.email) // from Login page
@@ -205,7 +221,7 @@ export default {
             return hoursDiff * cost;
             
         }
-                    
+        
     }
 }
 </script>
