@@ -34,7 +34,7 @@
             <table class="table table-light">
                 <thead>
                     <tr>
-                        <th scope="col">Room ID</th>
+                        <th scope="col">Booking ID</th>
                         <th scope="col">Room Name</th>
                         <th scope="col">Room Status</th>
                         <th scope="col">Booking Date</th>
@@ -104,7 +104,7 @@ export default {
         .then(response => response.json())
         .then(data => {
             this.userID = data.data.accountID;
-            console.log(this.userID)
+            console.log("user"+this.userID)
             return fetch('http://localhost:5001/bookinglog/getByaccountID/' + this.userID);
         })
         .then(response => response.json())
@@ -134,9 +134,7 @@ export default {
                     }).catch(error => console.error(error));
                 }).catch(error => console.error(error));
             }
-        }).catch(error => console.error(error));
-        
-        // get coBookedRooms
+            // get coBookedRooms
         fetch('http://localhost:5001/bookinglog/coBooker/' + this.userID )
         .then(response => response.json())
         .then(data => {
@@ -164,10 +162,13 @@ export default {
                     .then(data => {
                         this.coBookedRooms[i].roomName = data.data.roomName;
                         console.log(this.coBookedRooms[i].roomName)
+
                     }).catch(error => console.error(error));
                 }).catch(error => console.error(error));
             }
         }).catch(error => console.error(error));
+        }).catch(error => console.error(error));
+    
     }
     
     ,
@@ -188,7 +189,7 @@ export default {
             console.log(body);
             
             try {
-                const response = await fetch('http://localhost:5003/coBookerAccepts', {
+                const response = await fetch('http://localhost:5001/bookinglog/coBookerAccept', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
