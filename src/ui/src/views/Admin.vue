@@ -24,7 +24,7 @@
                         <td>{{ room.bookingDate }}</td>
                         <td>{{ room.startTime }}</td>
                         <td>{{ room.endTime }}</td>
-                        <td><button class="btn btn-md btn-danger" @click="cancelBooking(room)">Cancel</button></td>
+                        <td><button class="btn btn-md btn-danger" @click="cancelBooking(room.Id)">Cancel</button></td>
                     </tr>
                 </tbody>
             </table>
@@ -111,17 +111,20 @@ export default {
     
     methods: {
         cancelBooking(bookingID) {
-            console.log(bookingID)
-            fetch('http://localhost:5001/bookinglog/delete/' + bookingID, {
+            console.log("hi"+bookingID)
+            fetch('http://localhost:5005/cancelBooking', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                body: JSON.stringify({
+                    bookingID: bookingID
+                })
             })
             .then(response => response.json())
             .then(data => {
                 console.log(data)
-                if (data.status === 'success') {
+                if (data.code === 200) {
                     alert('Booking cancelled successfully');
                     window.location.reload();
                 }
