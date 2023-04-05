@@ -67,7 +67,7 @@ export default {
             date: this.$route.query.date,
             startTime: this.$route.query.starttime,
             endTime: this.$route.query.endtime,
-            bookingLogs: "http://localhost:5100/makeBooking",
+            bookingLogs: "http://localhost:5006/makeBooking",
             accountInfo: "http://localhost:5002/payment/getAccountID/",
             cobooker: [],
             allEmails: [],
@@ -112,11 +112,12 @@ export default {
         .then(data => {
             this.userID = data.data.accountID;
             console.log("user"+this.userID)
-            fetch("localhost:5002/payment/" + this.userID)
+            fetch("http://localhost:5002/payment/" + this.userID)
             .then(response => response.json())
             .then(data => {
+                console.log("pipupipu")
                 this.accountBalance = data.data.accountBalance;
-                console.log("credits: "+this.userCredits)
+                console.log("credits: "+this.accountBalance)
             })
             .catch(error => {
                 console.error('Error fetching account balance:', error);
@@ -156,6 +157,8 @@ export default {
                 
                 // "roomID": this.bookingInfo.roomId,
                 "roomID": this.bookingInfo.roomId,
+
+                "roomType": [this.bookingInfo.roomType],
                 
                 "roomName": [this.bookingInfo.roomName],
                 
@@ -166,6 +169,8 @@ export default {
                 "coBookerEmails": [this.cobooker.map(id => this.allEmails[id])],
             }
             console.log(newBooking);
+            console.log("account balance: " + this.accountBalance);
+            console.log("price: " + newBooking.price);
             if (this.accountBalance < newBooking.price) {
                 alert("Insufficient credits");
                 return;
@@ -211,13 +216,13 @@ export default {
             
             const [startHour, startMinute] = startTime.match(/.{1,2}/g);
             const [endHour, endMinute] = endTime.match(/.{1,2}/g);
-            
+
             const startDate = new Date(0, 0, 0, startHour, startMinute);
             const endDate = new Date(0, 0, 0, endHour, endMinute);
             
             const timeDiff = endDate.getTime() - startDate.getTime();
             const hoursDiff = timeDiff / (1000 * 60 * 60);
-            // console.log(hoursDiff * cost)
+
             return hoursDiff * cost;
             
         }
