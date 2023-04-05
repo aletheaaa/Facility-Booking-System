@@ -6,6 +6,7 @@ Import the SQL scripts, each stored in each of the simple microservices. There a
 
 ## SQL Configuration
 Services that uses the SQL database will require the user to:
+
     1) Create a SQL account "is213"
     2) Edit the following line with their SQL port number:
         For example (for port 3306): app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://is213@localhost:3306/bookinglogs
