@@ -39,8 +39,6 @@ def makeBooking():
             # check if the booking log has been created before (same timeslot & room)
             dateChosen = booking["startTime"].split(" ")[0]
             roomsJson = json.dumps({"roomID": [booking["roomID"]], "roomType":booking["roomType"], "location": booking["location"], "dateChosen": dateChosen})
-            print("this is roomsJson")
-            print(roomsJson)
             bookingLogResult = invoke_http(bookingLogs_URL + "/getTaken", method='GET', json=roomsJson)
             # check if bookingLogResult has a result with the exact same timeslot
             if bookingLogResult["code"] == 200:
@@ -58,11 +56,6 @@ def makeBooking():
                     # roomID & timeslot taken: 
                     # call on accessTakenBooking microservice to get a list of roomIDs with available timeslots
                     if bookedStartTime <=  bookingStartTime <= bookedEndTime:
-                        print("i came here")
-                        print(bookedStartTime)
-                        print("this is bookingStartTime")
-                        print(bookingStartTime)
-                        print(bookedEndTime)
                         accessTakenBookingResult = invoke_http(accessTakenURL, method='POST', json=roomsJson)
                         print(accessTakenBookingResult)
                         if accessTakenBookingResult["code"] in range (200, 300):
@@ -78,7 +71,6 @@ def makeBooking():
                         }), 404
 
             # creating a booking log
-            print("this is bookingLog_json")
             booking_logs_response = invoke_http(bookingLogs_URL, method='POST', json=bookingLog_json)
             if booking_logs_response["code"] not in range(200, 300):
                 return jsonify({
@@ -109,8 +101,6 @@ def makeBooking():
                 "startTime": formattedStartTime, 
                 "endTime": formattedEndTime 
             }
-            print("this is message")
-            print(message)
             brokerResult = rabbitmq(message)
             if brokerResult["code"] not in range(200, 300):
                 return jsonify({
