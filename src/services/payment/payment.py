@@ -30,6 +30,7 @@ class accounts(db.Model):
     def json(self):
         return {"accountID": self.accountID, "email": self.email, "balance": self.balance}
 
+
 # get all accounts
 @app.route("/payment/getAllAccounts", methods=["GET"])
 def get_all():
@@ -47,6 +48,27 @@ def get_all():
         {
             "code": 404,
             "message": "There are no accounts."
+        }
+    ), 404
+
+# get accountID from email
+@app.route("/payment/getAccountID/<string:email>", methods=["GET"])
+def get_accountID(email):
+    account = accounts.query.filter_by(email=email).first()
+    if account:
+        return jsonify(
+            {
+                "code": 200,
+                "data": {
+                    "accountID": account.accountID,
+                    "balance": account.balance
+                }
+            }
+        )
+    return jsonify(
+        {
+            "code": 404,
+            "message": "Account with email " + email + " does not exist."
         }
     ), 404
 
