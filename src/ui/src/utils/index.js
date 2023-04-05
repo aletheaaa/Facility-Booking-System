@@ -51,7 +51,7 @@ export const isLoggedIn = () => {
 export const signout = () => {
     signOut(getAuth())
     .then(() => {
-        console.log('Signed Out');
+        alert('Signed Out');
         router.push('/')
     })
     .catch(e => {

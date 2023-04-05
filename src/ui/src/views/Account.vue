@@ -64,11 +64,16 @@
             <p class="display-4 text-light">You have no co-bookings at the moment</p>
         </div>
     </div>
+    <div class="container" style="bottom:0, right: 0">
+        <button style="top:0, right: 0" class="btn btm-sm btn-light" @click="signout()">
+            Sign out
+        </button>
+    </div>
 </template>
 
 <script>
 import router from '../router';
-import { getCurrentUserEmail } from '../utils'
+import { getCurrentUserEmail, signout } from '../utils'
 export default {
     name: 'Account',
     data() {
@@ -169,6 +174,7 @@ export default {
     
     
     methods: {
+        signout,
         async confirmBooking(room) {
             const bookingID = room.bookingID;
             const accountID = this.userID;
