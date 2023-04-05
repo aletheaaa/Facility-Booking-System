@@ -59,6 +59,7 @@
 <script>
 // import axios from axios;
 import { getCurrentUserEmail } from '../utils'
+import router from '../router'
 export default {
     name: 'BookRoom',
     data() {
@@ -115,7 +116,6 @@ export default {
             fetch("http://localhost:5002/payment/" + this.userID)
             .then(response => response.json())
             .then(data => {
-                console.log("pipupipu")
                 this.accountBalance = data.data.accountBalance;
                 console.log("credits: "+this.accountBalance)
             })
@@ -185,6 +185,11 @@ export default {
             .then(response => response.json()) 
             .then(data => {
                 console.log(data)
+                if(data.code == 400){
+                    alert("Booking failed. This time slot is already booked. Please try again.");
+                    // push to '/main'
+                    router.push('/main')
+                } 
             }) 
             .catch(error => console.error(error));
         },
