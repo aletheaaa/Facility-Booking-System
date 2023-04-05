@@ -208,7 +208,7 @@ def create_booking():
             {
                 "code": 500,
                 "data": {
-                    "booking": bookinglog
+                    "booking": bookinglog.json()
                 },
                 "message": "An error occurred creating the booking."
             }

@@ -67,7 +67,7 @@ def getTakenBooking(data):
     if roomResult["code"] not in range(200, 300):
         return {
                 "code": 500,
-                "message": "Error retreiving rooms."
+                "message": "Error retrieving rooms."
             }
     elif len(roomResult["data"]) == 0:
         return {
