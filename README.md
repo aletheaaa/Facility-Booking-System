@@ -12,7 +12,7 @@ Our facility booking system allows students to book facilities. The microservice
 Import the SQL scripts, each stored in each of the simple microservices. There are 4 SQL scripts to import: BookingLogs, Payment, Room, and Notification. Ensure that MySQL is on your local computer. 
 
 ## Running with Docker
-Alternatively, you can run the entire back-end using docker in one command, `docker compose up --build`. 
+Run the entire back-end using docker in one command, `docker compose up --build`. 
 
 ## Access to Front-End UI
 To run the web application, run this code in the terminal, `npm run dev`.
