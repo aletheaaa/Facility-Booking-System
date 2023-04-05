@@ -30,18 +30,22 @@
                     <h3>Co-Booker Details</h3>
                     <ol v-show="this.cobooker.length > 0" >
                         <li v-for="booker in this.cobooker">
-                            Email : {{ booker }}
+                            Email : {{ allEmails[booker] }}
                         </li>
                     </ol>
                     <p v-show="this.cobooker.length == 0">
                         No co-bookers
                     </p>
                     <p>Enter new email:
-                        <input type="email" name="" id="newBooker" style="margin-right: 10px"> 
-                        <button class="btn btn-primary" @click="addCoBooker">Add</button>
+                        <!-- <input type="email" name="" id="newBooker" style="margin-right: 10px">  -->
+                        <!-- <button class="btn btn-primary" @click="addCoBooker">Add</button>-->
+                        <select name="time" id="starttime" class="form-control" v-model="cobooker" multiple>
+                            <option v-for="(email, ID) in allEmails" :value="ID">{{ email }}</option>
+                        </select>
+                        <span class="select-arrow"></span>
                     </p>
-   
-
+                    
+                    
                 </div>
                 <button class="btn btn-lg btn-danger mt-3" @click="createBooking">
                     <!-- TODO: add makeBooking functionality -->
@@ -54,17 +58,22 @@
 </template>
 <script>
 // import axios from axios;
+import { getCurrentUserEmail } from '../utils'
 export default {
     name: 'BookRoom',
     data() {
         return {
             bookingInfo: JSON.parse(this.$route.query.bookingInfo),
             date: this.$route.query.date,
-            startTime: this.$route.query.startTime,
-            endTime: this.$route.query.endTime,
+            startTime: this.$route.query.starttime,
+            endTime: this.$route.query.endtime,
             bookingLogs: "http://localhost:5100/makeBooking",
             accountInfo: "http://localhost:5002/payment/getAccountID/",
             cobooker: [],
+            allEmails: [],
+            userID: 0,
+            userEmail: '',
+            accountBalance: 0,
         };
     },
     
@@ -72,49 +81,95 @@ export default {
         // this.bookingInfo = JSON.parse(this.$route.query.bookingInfo);
         console.log(this.bookingInfo);
         
-        // Changing Time Format
-        // From UI, format is like this:
-        const startTimeInHrs = this.$route.query.startTime; // this.startTime = '1500';
-        const endTimeInHrs = this.$route.query.endTime;     // this.endTime = '1700';
-        const dateChosen = this.$route.query.date           // this.date = '2021-01-13';
-        // Need to change to below format to match makeBooking service input reqs e.g. startTime = "YYYY-MM-DD HH:MM:SS";
-        this.startTime = dateChosen + " " + startTimeInHrs.slice(0,2) + ':' + startTimeInHrs.slice(2) + ':00';
-        this.endTime   = dateChosen + " " + endTimeInHrs.slice(0,2) + ':' + endTimeInHrs.slice(2) + ':00';
-        console.log(this.bookingInfo);
-
-
-
-
+        
+        fetch('http://localhost:5002/payment/getAllAccounts')
+        .then(response => response.json())
+        .then(data => {
+            this.allEmails = data.data.accounts.reduce((acc, curr) => {
+                acc[curr.accountID] = curr.email;
+                return acc;
+            }, {});
+            console.log(this.allEmails)
+        })
+        .catch(error => {
+            console.error('Error fetching email list:', error);
+        });
+        
+        
+        getCurrentUserEmail()
+        .then(userEmail => {
+            this.userEmail = userEmail;
+            console.log(userEmail);
+            if (userEmail) {
+                return fetch(`http://localhost:5002/payment/getAccountID/${userEmail}`)
+            }
+            else{
+                router.push('/')
+                throw new Error('User email not found');
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.userID = data.data.accountID;
+            console.log("user"+this.userID)
+            fetch("localhost:5002/payment/" + this.userID)
+            .then(response => response.json())
+            .then(data => {
+                this.accountBalance = data.data.accountBalance;
+                console.log("credits: "+this.userCredits)
+            })
+            .catch(error => {
+                console.error('Error fetching account balance:', error);
+            });
+        }).catch(error => {
+            console.error('Error fetching account ID:', error);
+        });
+        
+        
+        
     },
     methods: {
         addCoBooker() {
             const newBooker = document.getElementById("newBooker").value;
             if (newBooker !== '') {
-            this.cobooker.push(newBooker);
-            console.log(newBooker)
-            document.getElementById("newBooker").value = "";
-            console.log(newBooker)
-
+                this.cobooker.push(newBooker);
+                console.log(newBooker)
+                document.getElementById("newBooker").value = "";
+                console.log(newBooker)
+                
             }
         },
-
+        
         createBooking(){
             const newBooking = {
                 // "accountID": this.getAccountID(), // get accountID from payment[email]
-                "accountID": 1,
-
-                "startTime": this.startTime,
-                "endTime": this.endTime,
-
+                "accountID": this.userID,
+                
+                "accountEmail": this.userEmail,
+                
+                "startTime": `${this.date} ${this.startTime.slice(0, 2)}:${this.startTime.slice(2)}:00`,
+                
+                "endTime": `${this.date} ${this.endTime.slice(0, 2)}:${this.endTime.slice(2)}:00`,
+                
                 // "price": this.getPrice(), // get price from rooms service[cost]
-                "price": 5,
-
+                "price": this.getPrice(),
+                
                 // "roomID": this.bookingInfo.roomId,
-                "roomID": 1,
-
-                "coBooker": this.cobooker
+                "roomID": this.bookingInfo.roomId,
+                
+                "roomName": [this.bookingInfo.roomName],
+                
+                "location": [this.bookingInfo.location],
+                
+                "coBookerIDs": [this.cobooker],
+                
+                "coBookerEmails": [this.cobooker.map(id => this.allEmails[id])],
             }
             console.log(newBooking);
+            if (this.accountBalance < newBooking.price) {
+                alert("Insufficient credits");
+                return;
+            }
             fetch(this.bookingLogs, {
                 method: 'POST',
                 headers: {
@@ -128,14 +183,14 @@ export default {
             }) 
             .catch(error => console.error(error));
         },
-
-
+        
+        
         // created a function get accountID from payment but it always throw error saying no CORS access
         getAccountID() {
             fetch(this.accountInfo + this.email) // from Login page
             .then(response => response.json()) // Parse response body as JSON
             .then(response => {
-            
+                
                 const accountData = response;
                 console.log(accountData.data)
                 this.accountID = [accountData.data.account];
@@ -149,23 +204,24 @@ export default {
         },
         
         getPrice(){
-            fetch('localhost:8080/rooms/' + this.bookingInfo.roomId) 
-            .then(response => response.json()) 
-            .then(response => {
+            const cost = this.bookingInfo.cost;
+            // this function needs to take in startTime and endTime and find the duration in hours and multiply by cost
+            const startTime = this.startTime;
+            const endTime = this.endTime;
             
-                const accountData = response;
-                console.log(accountData.data)
-                this.price = accountData.data.cost;
-                console.log(this.price)
-                // Rooms has a function called getCost() but i'm not sure how to use it 
-                return this.price;
-                
-            }) 
-            .catch(err => {
-                console.log(`Error getting price`, err);
-            });
+            const [startHour, startMinute] = startTime.match(/.{1,2}/g);
+            const [endHour, endMinute] = endTime.match(/.{1,2}/g);
+            
+            const startDate = new Date(0, 0, 0, startHour, startMinute);
+            const endDate = new Date(0, 0, 0, endHour, endMinute);
+            
+            const timeDiff = endDate.getTime() - startDate.getTime();
+            const hoursDiff = timeDiff / (1000 * 60 * 60);
+            // console.log(hoursDiff * cost)
+            return hoursDiff * cost;
+            
         }
-
+        
     }
 }
 </script>

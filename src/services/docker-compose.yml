@@ -7,6 +7,7 @@ networks:
   make-bookings-network:
     driver: bridge
   cancel-booking-network:
+  make-booking-network:
   my-network:
 
 services:
@@ -24,6 +25,7 @@ services:
       - my-network
       - cancel-booking-network
       - update-booking-network
+      - make-bookings-network
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -32,9 +34,9 @@ services:
       interval: 10s
       retries: 20
 
-  # #################################
-  # # rabbitmq: The RabbitMQ image
-  # #################################
+  #################################
+  # rabbitmq: The RabbitMQ image
+  #################################
   rabbitmq:
     image: rabbitmq:3-management
     hostname: esd-rabbit
@@ -43,6 +45,7 @@ services:
       - my-network
       - cancel-booking-network
       - update-booking-network
+      - make-bookings-network
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -68,6 +71,7 @@ services:
       - access-booking-network
       - update-booking-network
       - make-bookings-network
+      - cancel-booking-network
   
   #################################
   # Payment: The Payment microservice
@@ -104,6 +108,7 @@ services:
     networks:
       - access-booking-network
       - cancel-booking-network
+      - update-booking-network
 
   #################################
   # MySQL: The official image for MySQL
@@ -122,6 +127,7 @@ services:
     networks:
       - access-booking-network
       - cancel-booking-network
+      - update-booking-network
 
   ################################
   # updateBooking: The updateBooking microservice
@@ -137,6 +143,7 @@ services:
     networks:
       - update-booking-network
     depends_on:
+      - room
       - notif
       - payment
       - bookinglogs
@@ -144,27 +151,28 @@ services:
   # #################################
   # # accesstakenbooking: The accesstakenbooking microservice
   # #################################
-  # accesstakenbooking:
-  #   image: aletheatohh/accesstakenbooking:1.0
-  #   restart: always
-  #   build:
-  #     context: ./accessTakenBooking
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "5004:5004"
-  #   networks:
-  #     - access-booking-network
-  #   depends_on:
-  #     - db
-  #     - room
-  #     - bookinglogs
+  accesstakenbooking:
+    image: aletheatohh/accesstakenbooking:1.0
+    restart: always
+    build:
+      context: ./accessTakenBooking
+      dockerfile: Dockerfile
+    ports:
+      - "5004:5004"
+    networks:
+      - access-booking-network
+      - make-bookings-network
+    depends_on:
+      - db
+      - room
+      - bookinglogs
 
   #################################
   # cancelbooking: The cancelbooking microservice
   #################################
   cancelbooking:
     image: aletheatohh/cancelbooking:1.0
-    restart: always
+    restart: always 
     build:
       context: ./cancelBooking
       dockerfile: Dockerfile
@@ -177,3 +185,23 @@ services:
       - payment
       - bookinglogs
       - room
+
+  #################################
+  # makebooking: The makeBooking microservice
+  #################################
+  makebooking:
+    image: aletheatohh/makebooking:1.0
+    restart: always
+    build:
+      context: ./makeBooking
+      dockerfile: Dockerfile
+    ports:
+      - "5006:5006"
+    networks:
+      - make-booking-network
+      - access-booking-network
+    depends_on:
+      - notif
+      - payment
+      - bookinglogs
+      - accesstakenbooking

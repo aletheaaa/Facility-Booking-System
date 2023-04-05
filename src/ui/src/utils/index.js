@@ -75,7 +75,13 @@ export const login = () => {
     // Create user with email and pass.
     signInWithEmailAndPassword(getAuth(), email, password).then(() => {
         console.log("Successfully signed in")
-        router.push('/main')
+        if (email === 'admin@admin.com' ) {
+            // redirect the user to the home page
+            router.push('/admin')
+        }
+        else{
+            router.push('/main')
+        }
     })
     
     .catch(function (error) {
